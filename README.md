@@ -1,7 +1,7 @@
 # S24_5410_Group21_DALVacationHome
 
 
-### Deployed sophisticated
+### Deployed Site
 
 [DalVacationHome Site](https://dal-vacation-home.netlify.app/)
 
