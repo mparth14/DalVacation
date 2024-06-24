@@ -1,4 +1,3 @@
-// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
@@ -10,7 +9,8 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import RoomDetails from './pages/RoomDetails';
 import ManageRooms from './pages/ManageRooms';
-import './styles.css'; // Import global styles
+import Chatbot from './components/Chatbot/Chatbot'; // Import Chatbot component
+import './styles.css'; 
 
 const App = () => {
   return (
@@ -26,6 +26,7 @@ const App = () => {
             <Route path="/room/:id" element={<RoomDetails />} />
             <Route path="/manage-rooms" element={<ManageRooms />} />
           </Routes>
+          <Chatbot />
         </Router>
       </RoomProvider>
     </AuthProvider>
