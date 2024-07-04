@@ -41,29 +41,32 @@ const Chatbot = () => {
 
   const handleSendMessage = () => {
     if (inputText.trim() === '') return;
-
+  
     const newMessages = [...messages, { text: inputText, sender: 'user' }];
     setMessages(newMessages);
-
+  
     const params = {
-      botAliasId: 'DO7EE9W4VP',  // Replace with your Lex V2 bot alias ID
-      botId: 'BVYSLWPTPD',  // Replace with your Lex V2 bot ID
-      localeId: 'en_US',  // Replace with your bot locale ID
+      botAliasId: 'DO7EE9W4VP',
+      botId: 'BVYSLWPTPD',
+      localeId: 'en_US',
       sessionId: userId,
       text: inputText,
     };
-
+  
     lexruntimev2.recognizeText(params, (err, data) => {
       if (err) {
         console.log(err, err.stack);
         return;
       }
-      const botMessage = data.messages && data.messages.length > 0 ? data.messages[0].content : "I couldn't understand that.";
-      setMessages([...newMessages, { text: botMessage, sender: 'bot' }]);
+  
+      const botMessages = data.messages || [];
+      const updatedMessages = botMessages.map(message => ({ text: message.content, sender: 'bot' }));
+      setMessages([...newMessages, ...updatedMessages]);
     });
-
+  
     setInputText('');
   };
+  
 
   const toggleChat = () => {
     setShowChat(!showChat);
@@ -75,7 +78,7 @@ const Chatbot = () => {
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // Prevents default behavior (submitting form)
+      e.preventDefault(); 
       handleSendMessage();
     }
   };
