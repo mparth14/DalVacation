@@ -1,6 +1,5 @@
-// src/pages/Signup.js
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
