@@ -1,7 +1,6 @@
-// src/pages/ManageRooms.js
 import React, { useState } from 'react';
-import { useRooms } from '../contexts/RoomContext';
-import RoomCard from '../components/RoomCard';
+import { useRooms } from '../../contexts/RoomContext';
+import RoomCard from '../../components/RoomCard/RoomCard';
 
 const ManageRooms = () => {
     const { rooms, addRoom, updateRoom, deleteRoom } = useRooms();

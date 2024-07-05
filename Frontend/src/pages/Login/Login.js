@@ -1,6 +1,5 @@
-// src/pages/Login.js
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
     const [email, setEmail] = useState('');
