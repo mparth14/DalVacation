@@ -9,13 +9,27 @@ import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import CircularProgress from '@mui/material/CircularProgress'; 
+import CircularProgress from '@mui/material/CircularProgress';
+import { styled } from '@mui/system';
 
 AWS.config.update({
   region: 'us-east-1',
   credentials: new AWS.CognitoIdentityCredentials({
     IdentityPoolId: 'us-east-1:987020a2-47ef-41e4-bf80-11936c848edc',
   }),
+});
+
+const StyledButton = styled(Button)({
+  backgroundColor: '#ff6f61',
+  color: '#fff',
+  '&:hover': {
+    backgroundColor: '#ff3b2e',
+  },
+  borderRadius: '8px',
+  padding: '10px 20px',
+  '& .MuiButton-label': {
+    marginLeft: '8px', // Adjust the margin as needed
+  },
 });
 
 const lexruntimev2 = new AWS.LexRuntimeV2();
@@ -90,15 +104,19 @@ const Chatbot = () => {
   return (
     <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
       {!showChat && (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={toggleChat}
-          className="chat-button"
-        >
+        // <Button
+        //   variant="contained"
+        //   color="primary"
+        //   onClick={toggleChat}
+        //   className="chat-button"
+        // >
+
+        // </Button>
+
+        <StyledButton variant="contained" onClick={toggleChat}>
           <ChatBubbleOutlineIcon />
           Chat Now
-        </Button>
+        </StyledButton>
       )}
       {showChat && (
         <Paper sx={{ maxWidth: 400, width: '100%', p: 2 }}>
@@ -142,7 +160,12 @@ const Chatbot = () => {
               sx={{ ml: 2 }}
             >
               Send
-            </Button>
+            </Button> */}
+
+            <StyledButton variant="contained" onClick={handleSendMessage} sx={{ ml: 2 }}>
+              Send
+              <SendIcon />
+            </StyledButton>
           </Box>
         </Paper>
       )}

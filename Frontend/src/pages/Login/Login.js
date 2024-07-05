@@ -162,41 +162,41 @@ const Login = () => {
                         sessionStorage.setItem('refreshToken', response.data.user.refreshToken);
                         login(response.data.user);
                         // Proceed to security question step
-                          // Simulate getting a random security question
-                    const securityQuestionId = Math.floor(Math.random() * 3) + 1; // Assuming 3 security questions
-                    let securityQuestion = '';
-                    switch (securityQuestionId) {
-                        case 1:
-                            securityQuestion = 'What is your favorite color?';
-                            break;
-                        case 2:
-                            securityQuestion = 'What is your favorite sport?';
-                            break;
-                        case 3:
-                            securityQuestion = 'What city were you born in?';
-                            break;
-                        default:
-                            break;
-                    }
+                        // Simulate getting a random security question
+                        const securityQuestionId = Math.floor(Math.random() * 3) + 1; // Assuming 3 security questions
+                        let securityQuestion = '';
+                        switch (securityQuestionId) {
+                            case 1:
+                                securityQuestion = 'What is your favorite color?';
+                                break;
+                            case 2:
+                                securityQuestion = 'What is your favorite sport?';
+                                break;
+                            case 3:
+                                securityQuestion = 'What city were you born in?';
+                                break;
+                            default:
+                                break;
+                        }
 
-                    setFormData((prevFormData) => ({
-                        ...prevFormData,
-                        securityQuestion,
-                        securityQuestionId,
-                    }));
+                        setFormData((prevFormData) => ({
+                            ...prevFormData,
+                            securityQuestion,
+                            securityQuestionId,
+                        }));
                         setActiveStep((prevActiveStep) => prevActiveStep + 1);
                         setApiSuccess(true);
                     } else {
                         // Handle unauthorized access
                         setErrors({ apiError: 'You are not authorized to access this application.' });
                     }
-                } else if (response.status === 500){
+                } else if (response.status === 500) {
                     let errorMessage = 'Login failed. Please try again.';
                     if (response.data.message) {
                         errorMessage = response.data.message;
                     }
                     setErrors({ apiError: errorMessage });
-                }else{
+                } else {
                     let errorMessage = 'Login failed. Please try again.';
                     if (response.data.message) {
                         errorMessage = response.data.message;
@@ -205,13 +205,13 @@ const Login = () => {
                 }
             } catch (error) {
 
-                if (error.statusCode === 500 ){
+                if (error.statusCode === 500) {
                     let errorMessage = 'Login failed. Please try again.';
                     if (error.message) {
                         errorMessage = error.message;
                     }
                     setErrors({ apiError: errorMessage });
-                }else{
+                } else {
                     console.error('Error during login:', error);
                     setErrors({ apiError: "Error during login." });
                 }
@@ -270,29 +270,29 @@ const Login = () => {
 
 
         } else if (activeStep === 2) {
-                   // Fetch third factor authentication
-                   try {
-                    const response = await axios.get('https://2oi0rkpty0.execute-api.us-east-1.amazonaws.com/test1/secret-key-verify', {
-                        params: {
-                            email: formData.email,
-                            secretKeyVerify: formData.securityKey,
-                        },
-                    });
+            // Fetch third factor authentication
+            try {
+                const response = await axios.get('https://2oi0rkpty0.execute-api.us-east-1.amazonaws.com/test1/secret-key-verify', {
+                    params: {
+                        email: formData.email,
+                        secretKeyVerify: formData.securityKey,
+                    },
+                });
 
-                    if (response.status === 200 && response.data.message==="Authentication successful") {
-                        // Proceed to next step upon successful verification
-                        alert('Login successful!');
-                        setApiSuccess(true);
-                        navigate('/');
-                    } else {
-                        // Handle third factor authentication failure
-                        alert('Failed to verify third factor authentication.');
-                    }
-                } catch (error) {
-                    console.error('Error fetching third factor authentication:', error);
-                    let errorMessage = 'An error occurred while fetching third factor authentication.';
-                    setErrors({ apiError: errorMessage });
+                if (response.status === 200 && response.data.message === "Authentication successful") {
+                    // Proceed to next step upon successful verification
+                    alert('Login successful!');
+                    setApiSuccess(true);
+                    navigate('/');
+                } else {
+                    // Handle third factor authentication failure
+                    alert('Failed to verify third factor authentication.');
                 }
+            } catch (error) {
+                console.error('Error fetching third factor authentication:', error);
+                let errorMessage = 'An error occurred while fetching third factor authentication.';
+                setErrors({ apiError: errorMessage });
+            }
         }
     };
 
