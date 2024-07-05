@@ -8,7 +8,6 @@ const Home = () => {
 
     return (
         <div className="container">
-            <h1>Available Rooms</h1>
             <div className="room-list">
                 {rooms.map(room => (
                     <RoomCard key={room.id} room={room} />
