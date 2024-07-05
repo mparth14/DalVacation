@@ -50,7 +50,7 @@ const Main = () => {
         <Route path="/manage-rooms" element={<ManageRooms />} />
         <Route path="/feedback" element={<FeedbackForm />} />
         <Route path="/feedback-display" element={<FeedbackDisplay />} />
-      </Routes>
+      </Routes >
       <ToastContainer />
       <Chatbot />
     </>

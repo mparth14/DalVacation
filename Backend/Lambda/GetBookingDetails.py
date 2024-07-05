@@ -7,6 +7,9 @@ def lambda_handler(event, context):
     slots = event['sessionState']['intent']['slots']
     intent = event['sessionState']['intent']['name']
     
+    print(bot)
+    print(slots['BookingID']['value']['originalValue'])
+    print(intent)
     # Extract the booking reference code from the Lex input
     booking_id = slots['BookingID']['value']['originalValue']
     
@@ -31,26 +34,15 @@ def lambda_handler(event, context):
         )
         
         if 'Item' in response:
-            item = response['Item']
-            check_in_date = item['check_in_date']['S']
-            check_out_date = item['check_out_date']['S']
-            email = item['email']['S']
-            room_id = item['room_id']['S']
-            status = item['status']['S']
-            
-            message = (f"Booking ID {booking_id} Details:\n"
-                       f"Check-In Date: {check_in_date}\n"
-                       f"Check-Out Date: {check_out_date}\n"
-                       f"Email: {email}\n"
-                       f"Room ID: {room_id}\n"
-                       f"Status: {status}")
+            room_number = response['Item']['room_number']['S']
+            message = f"Booking {booking_id} has Room Number {room_number}."
         else:
             message = f"Booking ID {booking_id} not found."
-
         
     except ClientError as e:
         message = f"Error fetching booking details: {e.response['Error']['Message']}"
     
+    # Return the message to Lex
     return {
     'sessionState': {
       'intent': {
