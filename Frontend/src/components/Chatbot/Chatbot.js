@@ -23,7 +23,7 @@ const StyledButton = styled(Button)({
   backgroundColor: '#ff6f61',
   color: '#fff',
   '&:hover': {
-      backgroundColor: '#ff3b2e',
+    backgroundColor: '#ff3b2e',
   },
   borderRadius: '8px',
   padding: '10px 20px',
@@ -106,10 +106,10 @@ const Chatbot = () => {
 
         // </Button>
 
-<StyledButton  variant="contained"  onClick={toggleChat}>
-<ChatBubbleOutlineIcon/>
-Chat Now
-</StyledButton>
+        <StyledButton variant="contained" onClick={toggleChat}>
+          <ChatBubbleOutlineIcon />
+          Chat Now
+        </StyledButton>
       )}
       {showChat && (
         <Paper sx={{ maxWidth: 400, width: '100%', p: 2 }}>
@@ -124,7 +124,7 @@ Chat Now
           <Box sx={{ maxHeight: 300, overflowY: 'auto', mt: 2 }}>
             {messages.map((msg, index) => (
               <Box key={index} className={`message ${msg.sender}`} sx={{ mb: 2 }}>
-                <Paper sx={{ p: 2, backgroundColor: msg.sender === 'bot' ? '#f0f0f0' : '#d3f4ff' }}>
+                <Paper sx={{ p: 2, backgroundColor: msg.sender === 'bot' ? '#ff6f61' : '#d9d9d9' }}>
                   <Typography variant="body1">{msg.text}</Typography>
                 </Paper>
               </Box>
@@ -150,7 +150,7 @@ Chat Now
               Send
             </Button> */}
 
-            <StyledButton  variant="contained"  onClick={handleSendMessage} sx={{ ml: 2 }}>
+            <StyledButton variant="contained" onClick={handleSendMessage} sx={{ ml: 2 }}>
               Send
               <SendIcon />
             </StyledButton>

@@ -55,7 +55,7 @@ const SortPicker = ({ selectedOption, onSortChange }) => {
                             <FormControlLabel
                                 key={option}
                                 value={option}
-                                control={<Radio style={{ color: '#FF9A00' }} />}
+                                control={<Radio style={{ color: '#ff6f61' }} />}
                                 label={option}
                             />
                         ))}
