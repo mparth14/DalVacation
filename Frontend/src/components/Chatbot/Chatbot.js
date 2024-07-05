@@ -152,7 +152,7 @@ const Chatbot = () => {
               onKeyUp={handleKeyPress}
               placeholder="Type your message..."
             />
-            {/* <Button
+            <Button
               variant="contained"
               color="primary"
               onClick={handleSendMessage}

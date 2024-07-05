@@ -157,9 +157,10 @@ const Login = () => {
                     // Check if groups include 'property-agents'
                     if (response.data.groups && (response.data.groups.includes("registered-users") || response.data.groups.includes("property-agents"))) {
 
-                        sessionStorage.setItem('accessToken', response.data.tokens.accessToken);
-                        sessionStorage.setItem('idToken', response.data.tokens.idToken);
-                        sessionStorage.setItem('refreshToken', response.data.tokens.refreshToken);
+                        sessionStorage.setItem('accessToken', response.data.user.accessToken);
+                        sessionStorage.setItem('idToken', response.data.user.idToken);
+                        sessionStorage.setItem('refreshToken', response.data.user.refreshToken);
+                        login(response.data.user);
                         // Proceed to security question step
                         // Simulate getting a random security question
                         const securityQuestionId = Math.floor(Math.random() * 3) + 1; // Assuming 3 security questions
