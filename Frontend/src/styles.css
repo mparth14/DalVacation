@@ -10,7 +10,11 @@ body {
 
 a {
     text-decoration: none;
-    color: #333;
+    color: #ff6f61; /* Updated to orange */
+}
+
+a:hover {
+    color: #d05448; /* Darker orange for hover */
 }
 
 nav {
@@ -18,7 +22,7 @@ nav {
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    background-color: #4CAF50;
+    background-color: #ff6f61; /* Updated to orange */
     color: white;
 }
 
@@ -39,24 +43,35 @@ nav a:hover {
 
 button {
     padding: 0.5rem 1rem;
-    background-color: #4CAF50;
+    background-color: #ff6f61; /* Updated to orange */
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
 }
 
-button:hover {
-    background-color: #45a049;
+
+
+button:focus {
+    outline: none;
+    box-shadow: 0 0 5px #ff6f61; /* Orange focus color */
 }
 
-input, select {
+input, select, textarea {
     display: block;
     width: 100%;
+    color: #ff6f61;
     padding: 0.5rem;
     margin: 0.5rem 0;
     border: 1px solid #ccc;
     border-radius: 5px;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #ff6f61; /* Orange border on focus */
+    color: #ff6f61;
+    box-shadow: 0 0 5px #ff6f61; /* Orange focus color */
+    outline: none;
 }
 
 .room-card {
@@ -74,4 +89,48 @@ input, select {
 
 .form-group {
     margin: 1rem 0;
+}
+
+.signup-container {
+    background-color: #f7f7f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 20px;
+}
+
+.image-container img {
+    max-width: 100%;
+    height: auto;
+}
+
+.formContainer {
+    padding: 20px;
+    max-width: 400px;
+    width: 100%;
+    border-radius: 8px;
+    background-color: #fff; /* Ensure form container has a white background */
+    border: 1px solid #ff6f61; /* Added a border for consistency */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #ff6f61; /* Updated to orange */
+}
+
+.header {
+    background-color: #ff6f61; /* Updated to orange */
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+.footer {
+    background-color: #ff6f61; /* Updated to orange */
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
 }
