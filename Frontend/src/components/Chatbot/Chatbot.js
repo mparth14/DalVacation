@@ -5,11 +5,11 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import Avatar from '@mui/material/Avatar';
 import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import CircularProgress from '@mui/material/CircularProgress';
 import { styled } from '@mui/system';
 
 AWS.config.update({
@@ -45,6 +45,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [showChat, setShowChat] = useState(false); // State to manage chat visibility
+  const [loading, setLoading] = useState(false); // State to manage loading indicator
 
   const messageEndRef = useRef(null);
 
@@ -60,20 +61,26 @@ const Chatbot = () => {
     setMessages(newMessages);
 
     const params = {
-      botAliasId: 'DO7EE9W4VP',  // Replace with your Lex V2 bot alias ID
-      botId: 'BVYSLWPTPD',  // Replace with your Lex V2 bot ID
-      localeId: 'en_US',  // Replace with your bot locale ID
+      botAliasId: 'DO7EE9W4VP',
+      botId: 'BVYSLWPTPD',
+      localeId: 'en_US',
       sessionId: userId,
       text: inputText,
     };
 
+    setLoading(true); // Show loading indicator
+
     lexruntimev2.recognizeText(params, (err, data) => {
+      setLoading(false); // Hide loading indicator after response
+
       if (err) {
         console.log(err, err.stack);
         return;
       }
-      const botMessage = data.messages && data.messages.length > 0 ? data.messages[0].content : "I couldn't understand that.";
-      setMessages([...newMessages, { text: botMessage, sender: 'bot' }]);
+
+      const botMessages = data.messages || [];
+      const updatedMessages = botMessages.map((message) => ({ text: message.content, sender: 'bot' }));
+      setMessages([...newMessages, ...updatedMessages]);
     });
 
     setInputText('');
@@ -89,7 +96,7 @@ const Chatbot = () => {
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // Prevents default behavior (submitting form)
+      e.preventDefault();
       handleSendMessage();
     }
   };
@@ -130,6 +137,11 @@ const Chatbot = () => {
               </Box>
             ))}
             <div ref={messageEndRef} />
+            {loading && (
+              <Box display="flex" justifyContent="center" mt={2}>
+                <CircularProgress color="primary" size={24} />
+              </Box>
+            )}
           </Box>
           <Box display="flex" alignItems="center" mt={2}>
             <TextField
@@ -140,16 +152,6 @@ const Chatbot = () => {
               onKeyUp={handleKeyPress}
               placeholder="Type your message..."
             />
-            {/* <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSendMessage}
-              endIcon={<SendIcon />}
-              sx={{ ml: 2 }}
-            >
-              Send
-            </Button> */}
-
             <StyledButton variant="contained" onClick={handleSendMessage} sx={{ ml: 2 }}>
               Send
               <SendIcon />
@@ -162,3 +164,4 @@ const Chatbot = () => {
 };
 
 export default Chatbot;
+
