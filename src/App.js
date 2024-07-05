@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { RoomProvider } from './contexts/RoomContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
+import FeedbackForm from './pages/FeedbackForm';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
@@ -25,6 +26,7 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/room/:id" element={<RoomDetails />} />
             <Route path="/manage-rooms" element={<ManageRooms />} />
+            <Route path="/feedback" element={<FeedbackForm />} />
           </Routes>
           <Chatbot />
         </Router>
