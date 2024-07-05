@@ -4,6 +4,7 @@ import { styled } from '@mui/system';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { getTokens } from '../../utils';
+import { useAuth } from '../../contexts/AuthContext';
 
 const StyledButton = styled(Button)({
     backgroundColor: '#ff6f61',
@@ -126,6 +127,9 @@ const Login = () => {
         securityKey: '',
     });
 
+
+    const { login } = useAuth();
+
     const steps = ['Login', 'Security Question', 'Security Key'];
     const [errors, setErrors] = useState({});
     const [apiSuccess, setApiSuccess] = useState(false);
@@ -153,9 +157,10 @@ const Login = () => {
                     // Check if groups include 'property-agents'
                     if (response.data.groups && (response.data.groups.includes("registered-users") || response.data.groups.includes("property-agents"))) {
 
-                        sessionStorage.setItem('accessToken', response.data.tokens.accessToken);
-                        sessionStorage.setItem('idToken', response.data.tokens.idToken);
-                        sessionStorage.setItem('refreshToken', response.data.tokens.refreshToken);
+                        sessionStorage.setItem('accessToken', response.data.user.accessToken);
+                        sessionStorage.setItem('idToken', response.data.user.idToken);
+                        sessionStorage.setItem('refreshToken', response.data.user.refreshToken);
+                        login(response.data.user);
                         // Proceed to security question step
                           // Simulate getting a random security question
                     const securityQuestionId = Math.floor(Math.random() * 3) + 1; // Assuming 3 security questions
