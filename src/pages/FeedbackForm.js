@@ -1,6 +1,6 @@
 // src/FeedbackForm.js
 import React, { useState } from 'react';
-import { TextField, Button, Grid, Typography, MenuItem, Container } from '@mui/material';
+import { TextField, Button, Grid, Typography, MenuItem, Container, Alert } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles((theme) => ({
@@ -26,6 +26,7 @@ const FeedbackForm = () => {
     rating: '',
   });
   const [errors, setErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,17 +54,42 @@ const FeedbackForm = () => {
     return Object.values(tempErrors).every(x => x === "");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
-      console.log('Form Submitted', formData);
-      // Send data to backend
+      try {
+        const response = await fetch('https://zlj6scapvsqwrwrsx2pb3g6gga0pqksm.lambda-url.us-west-1.on.aws/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          setSuccessMessage('Feedback submitted successfully');
+          setFormData({
+            roomType: '',
+            roomId: '',
+            recreationRoomId: '',
+            customerId: '',
+            feedbackText: '',
+            rating: '',
+          });
+          setErrors({});
+        } else {
+          console.error('Failed to submit feedback');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
     }
   };
 
   return (
     <Container maxWidth="sm" className={classes.container}>
       <Typography variant="h4" gutterBottom>Feedback Form</Typography>
+      {successMessage && <Alert severity="success">{successMessage}</Alert>}
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           <Grid item xs={12} className={classes.formField}>
