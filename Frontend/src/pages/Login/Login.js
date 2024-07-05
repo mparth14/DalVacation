@@ -3,7 +3,7 @@ import { Box, Button, Card, Step, StepLabel, Stepper, TextField, Typography } fr
 import { styled } from '@mui/system';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { getTokens } from '../utils.js';
+import { getTokens } from '../../utils';
 
 const StyledButton = styled(Button)({
     backgroundColor: '#ff6f61',
