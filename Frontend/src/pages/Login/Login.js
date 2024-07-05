@@ -146,10 +146,13 @@ const Login = () => {
         if (activeStep === 0) {
             // Login API call
             try {
+
+                const encodeBase64 = btoa(formData.password);
+
                 const response = await axios.get('https://2oi0rkpty0.execute-api.us-east-1.amazonaws.com/test1/user-auth', {
                     params: {
                         email: formData.email,
-                        password: formData.password,
+                        password: encodeBase64,
                     }
                 });
 
