@@ -131,7 +131,7 @@ const Chatbot = () => {
           <Box sx={{ maxHeight: 300, overflowY: 'auto', mt: 2 }}>
             {messages.map((msg, index) => (
               <Box key={index} className={`message ${msg.sender}`} sx={{ mb: 2 }}>
-                <Paper sx={{ p: 2, backgroundColor: msg.sender === 'bot' ? '#f0f0f0' : '#d3f4ff' }}>
+                <Paper sx={{ p: 2, backgroundColor: msg.sender === 'bot' ? '#ff6f61' : '#d9d9d9' }}>
                   <Typography variant="body1">{msg.text}</Typography>
                 </Paper>
               </Box>

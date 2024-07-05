@@ -1,3 +1,14 @@
+.container-dashboard {
+    background-image: url('https://images.pexels.com/photos/301673/pexels-photo-301673.jpeg?auto=compress&cs=tinysrgb&w=600');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .event-wrapper{
     flex: 1;
     padding: 10px;
@@ -16,10 +27,11 @@
     margin-bottom: 40px;
 }
 
-
 .event-wrapper .event-container {
     display: grid;
-    gap: 16px;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
 }
 /* Default: 1 column */
 .event-container {
@@ -34,7 +46,7 @@
 /* Medium devices: 3 columns */
 @media (min-width: 1039px) {
     .event-container {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 /* Large devices: 4 columns */

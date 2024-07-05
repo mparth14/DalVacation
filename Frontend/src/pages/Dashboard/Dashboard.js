@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import SearchBar from '../../components/Searchbar/Searchbar';
 import SortPicker from '../../components/SortPicker/SortPicker';
 import RoomCard from '../../components/RoomCard/RoomCard';
+import LoadingBar from '../../components/Loadingbar/Loadingbar';
 import "./Dashboard.css";
 
 const Dashboard = () => {
@@ -55,33 +56,35 @@ const Dashboard = () => {
     console.log(filteredRooms);
     console.log("rooms", rooms);
     return (
-        <div className="container">
-            <h1>Dashboard</h1>
-            {role === 'agent' ? (
-                <Link to="/manage-rooms">
-                    <button>Manage Rooms</button>
-                </Link>
-            ) : (
-                <div>
-                    <SearchBar
-                        startDate={startDate}
-                        setStartDate={setStartDate}
-                        endDate={endDate}
-                        setEndDate={setEndDate}
-                        onSearch={handleSearch}
-                    />
-                    <div className='event-wrapper'>
-                        <div className='event-sort'>
-                            <SortPicker selectedOption={sortType} onSortChange={handleSortChange} />
-                        </div>
-                        <div className='event-container'>
-                            {Array.isArray(filteredRooms) && filteredRooms.map(room => (
-                                <RoomCard key={room.id} room={room} />
-                            ))}
+        <div className="container-dashboard">
+            {
+                role === 'agent' ? (
+                    <Link to="/manage-rooms">
+                        <button>Manage Rooms</button>
+                    </Link>
+                ) : filteredRooms.length === 0 ? (
+                    <LoadingBar />
+                ) : (
+                    <div>
+                        <SearchBar
+                            startDate={startDate}
+                            setStartDate={setStartDate}
+                            endDate={endDate}
+                            setEndDate={setEndDate}
+                            onSearch={handleSearch}
+                        />
+                        <div className='event-wrapper'>
+                            <div className='event-sort'>
+                                <SortPicker selectedOption={sortType} onSortChange={handleSortChange} />
+                            </div>
+                            <div className='event-container'>
+                                {Array.isArray(filteredRooms) && filteredRooms.map(room => (
+                                    <RoomCard key={room.id} room={room} />
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
         </div>
     );
 };
