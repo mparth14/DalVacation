@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import SearchBar from '../../components/Searchbar/Searchbar';
 import SortPicker from '../../components/SortPicker/SortPicker';
 import RoomCard from '../../components/RoomCard/RoomCard';
-import LoadingBar from '../../components/Loadingbar/Loadingbar';
+import LoadingBar from '../../components/LoadingBar/LoadingBar';
 import "./Dashboard.css";
 
 const Dashboard = () => {
