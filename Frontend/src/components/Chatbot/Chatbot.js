@@ -152,16 +152,6 @@ const Chatbot = () => {
               onKeyUp={handleKeyPress}
               placeholder="Type your message..."
             />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSendMessage}
-              endIcon={<SendIcon />}
-              sx={{ ml: 2 }}
-            >
-              Send
-            </Button> */}
-
             <StyledButton variant="contained" onClick={handleSendMessage} sx={{ ml: 2 }}>
               Send
               <SendIcon />
