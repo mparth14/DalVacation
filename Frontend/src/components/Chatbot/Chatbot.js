@@ -79,7 +79,18 @@ const Chatbot = () => {
       }
 
       const botMessages = data.messages || [];
+      const intentName = data.interpretations[0]?.intent?.name || '';
       const updatedMessages = botMessages.map((message) => ({ text: message.content, sender: 'bot' }));
+
+      // Check for access token if the intent is GetBookingDetails
+      if (intentName === 'GetBookingDetails') {
+        const accessToken = sessionStorage.getItem('accessToken');
+        if (!accessToken) {
+          setMessages([...newMessages, ...updatedMessages, { text: "Please login first.", sender: 'bot' }]);
+          return;
+        }
+      }
+
       setMessages([...newMessages, ...updatedMessages]);
     });
 
@@ -104,15 +115,6 @@ const Chatbot = () => {
   return (
     <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
       {!showChat && (
-        // <Button
-        //   variant="contained"
-        //   color="primary"
-        //   onClick={toggleChat}
-        //   className="chat-button"
-        // >
-
-        // </Button>
-
         <StyledButton variant="contained" onClick={toggleChat}>
           <ChatBubbleOutlineIcon />
           Chat Now
@@ -149,13 +151,12 @@ const Chatbot = () => {
               variant="outlined"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              onKeyUp={handleKeyPress}
-              placeholder="Type your message..."
+              onKeyPress={handleKeyPress}
+              placeholder="Type a message..."
             />
-            <StyledButton variant="contained" onClick={handleSendMessage} sx={{ ml: 2 }}>
-              Send
+            <Button onClick={handleSendMessage} variant="contained" color="primary" sx={{ ml: 1 }}>
               <SendIcon />
-            </StyledButton>
+            </Button>
           </Box>
         </Paper>
       )}
@@ -164,4 +165,3 @@ const Chatbot = () => {
 };
 
 export default Chatbot;
-

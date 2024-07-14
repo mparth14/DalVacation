@@ -2,9 +2,9 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { RoomProvider } from './contexts/RoomContext';
-import './styles.css'; // Import global styles
+import './styles.css'; 
 import CssBaseline from '@mui/material/CssBaseline';
-import theme from './theme'; // Import your custom theme
+import theme from './theme'; 
 import { ThemeProvider } from '@mui/material/styles';
 import Chatbot from './components/Chatbot/Chatbot';
 import { ToastContainer } from 'react-toastify';
