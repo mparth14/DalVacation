@@ -161,7 +161,7 @@ const Login = () => {
                     if (response.data.groups && (response.data.groups.includes("registered-users") || response.data.groups.includes("property-agents"))) {
 
                         sessionStorage.setItem('accessToken', response.data.user.accessToken);
-                        sessionStorage.setItem('idToken', response.data.user.idToken);
+                        sessionStorage.setItem('idToken', response.data.user.user_id);
                         sessionStorage.setItem('refreshToken', response.data.user.refreshToken);
                         login(response.data.user);
                         // Proceed to security question step
