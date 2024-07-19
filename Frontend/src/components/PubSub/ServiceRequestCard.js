@@ -43,7 +43,7 @@ const ServiceRequestCard = ({ id, requester, assignee, createdAt, onClick }) => 
   return (
     <div style={styles.card}       onClick={onClick} // Handle click event
 >
-      <div style={styles.idCircle}>#{id}</div>
+      <div style={styles.idCircle}>{requester.charAt(0)}</div>
       <div>
         <div style={styles.requester}>{requester}</div>
         <div style={styles.assignee}>Assigned to: {assignee}</div>
