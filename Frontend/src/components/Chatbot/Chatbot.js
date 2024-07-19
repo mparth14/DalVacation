@@ -35,7 +35,7 @@ const StyledButton = styled(Button)({
 const lexruntimev2 = new AWS.LexRuntimeV2();
 
 // Generate or retrieve userId
-let userId = sessionStorage.getItem('lexUserId');
+let userId = sessionStorage.getItem('idToken') || sessionStorage.getItem('lexUserId');
 if (!userId) {
   userId = uuidv4();
   sessionStorage.setItem('lexUserId', userId);
@@ -64,7 +64,7 @@ const Chatbot = () => {
       botAliasId: 'DO7EE9W4VP',
       botId: 'BVYSLWPTPD',
       localeId: 'en_US',
-      sessionId: userId,
+      sessionId: sessionStorage.getItem('idToken') ? sessionStorage.getItem('idToken') : sessionStorage.getItem('lexUserId'),
       text: inputText,
     };
 
@@ -79,6 +79,14 @@ const Chatbot = () => {
       }
 
       const botMessages = data.messages || [];
+      const intent = data.interpretations && data.interpretations[0].intent.name;
+
+      if ((intent === 'GetBookingDetails' || intent === 'TalkToAgent') && !sessionStorage.getItem('idToken')) {
+        const loginMessage = { text: 'You must log in to continue.', sender: 'bot' };
+        setMessages([...newMessages, loginMessage]);
+        return;
+      }
+
       const updatedMessages = botMessages.map((message) => ({ text: message.content, sender: 'bot' }));
       setMessages([...newMessages, ...updatedMessages]);
     });
@@ -104,15 +112,6 @@ const Chatbot = () => {
   return (
     <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
       {!showChat && (
-        // <Button
-        //   variant="contained"
-        //   color="primary"
-        //   onClick={toggleChat}
-        //   className="chat-button"
-        // >
-
-        // </Button>
-
         <StyledButton variant="contained" onClick={toggleChat}>
           <ChatBubbleOutlineIcon />
           Chat Now
@@ -164,4 +163,3 @@ const Chatbot = () => {
 };
 
 export default Chatbot;
-
