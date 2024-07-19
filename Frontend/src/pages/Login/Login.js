@@ -164,11 +164,14 @@ const Login = () => {
                         sessionStorage.setItem('idToken', response.data.user.user_id);
                         sessionStorage.setItem('refreshToken', response.data.user.refreshToken);
                         sessionStorage.setItem('user', JSON.stringify(response.data.user));
+                        sessionStorage.setItem('role', (response.data.groups[0]));
+                        localStorage.setItem('role', (response.data.groups[0]));
                         localStorage.setItem('user', JSON.stringify(response.data.user));
                         login(response.data.user);
                         // Proceed to security question step
                         // Simulate getting a random security question
-                        const securityQuestionId = Math.floor(Math.random() * 3) + 1; // Assuming 3 security questions
+
+                        const securityQuestionId = Math.floor(Math.random() * 3) + 1;
                         let securityQuestion = '';
                         switch (securityQuestionId) {
                             case 1:
@@ -288,8 +291,12 @@ const Login = () => {
                     // Proceed to next step upon successful verification
                     alert('Login successful!');
                     setApiSuccess(true);
-                    navigate('/dashboard');
-                } else {
+                    if (localStorage.getItem('role') == "property-agents") {
+                        navigate('/manage-rooms');
+                    } else if (localStorage.getItem('role') == "registered-users") {
+                        navigate('/dashboard');
+                    }}
+                    else {
                     // Handle third factor authentication failure
                     alert('Failed to verify third factor authentication.');
                 }

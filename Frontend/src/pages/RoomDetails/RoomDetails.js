@@ -63,12 +63,14 @@ const RoomDetails = () => {
 
     if (!room) return <p>Room not found</p>;
 
+    // Ensure facilities is always an array
+    const facilities = Array.isArray(room.facilities) ? room.facilities : room.facilities.split(',').map(facility => facility.trim());
+
     return (
         <div className='room-details-container'>
             <h1>{room.room_name}</h1>
 
             <Carousel autoPlay={true} infiniteLoop={true} showThumbs={false} >
-
                 {room.images && room.images.length > 0 ? (
                     room.images.map((image, index) => (
                         <img key={index} className='room-carousel-image' src={image} />
@@ -76,9 +78,7 @@ const RoomDetails = () => {
                 ) : (
                     <img className='room-carousel-image' src="https://t3.ftcdn.net/jpg/02/48/42/64/360_F_248426448_NVKLywWqArG2ADUxDq6QprtIzsF82dMF.jpg" alt="Placeholder Image" />
                 )}
-
             </Carousel>
-
 
             <div className='room-detail-items'>
                 <div>
@@ -92,12 +92,11 @@ const RoomDetails = () => {
                     <p>{room.about}</p>
                     <div>
                         <ul>
-                            {room.facilities.map((facility, index) => (
+                            {facilities.map((facility, index) => (
                                 <li key={index}>{facility}</li>
                             ))}
                         </ul>
                     </div>
-
                 </div>
                 <div className='room-book-box'>
                     <div className='room-book-dates'>
@@ -143,7 +142,6 @@ const RoomDetails = () => {
                 </div>
             </div >
         </div >
-
     );
 };
 

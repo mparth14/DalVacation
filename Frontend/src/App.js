@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { RoomProvider } from './contexts/RoomContext';
 import './styles.css'; // Import global styles
@@ -42,6 +42,27 @@ const Main = () => {
   const hideNavbarRoutes = ['/login', '/signup', '/concern-request-list'];
   const showNavbar = !hideNavbarRoutes.includes(location.pathname) && !location.pathname.startsWith('/chat/');
 
+  const ProtectedRouteForAgents = ({ element: Component, ...rest }) => {
+    const role = localStorage.getItem('role');
+  
+    if (role && role =='property-agents') {
+      return <Component {...rest} />;
+    } else {
+      return <Navigate to="/login" />;
+    }
+  };
+
+  const ProtectedRouteForUsers = ({ element: Component, ...rest }) => {
+    const isLoggedIn = !!localStorage.getItem('role');
+  
+    if (isLoggedIn) {
+      return <Component {...rest} />;
+    } else {
+      // Redirect to login if not logged in
+      return <Navigate to="/login" />;
+    }
+  };
+
   return (
     <>
       {showNavbar && <Navbar />}
@@ -51,11 +72,11 @@ const Main = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/room/:id" element={<RoomDetails />} />
-        <Route path="/manage-rooms" element={<ManageRooms />} />
-        <Route path="/feedback" element={<FeedbackForm />} />
-        <Route path="/feedback-display" element={<FeedbackDisplay />} />
-        <Route path="/concern-request-list" element={<RequestList />} />
-        <Route path="/chat/:requestId" element={<Chat />} />
+        <Route path="/manage-rooms" element={<ProtectedRouteForAgents element={ManageRooms} />} />
+        <Route path="/feedback" element={<ProtectedRouteForUsers element={FeedbackDisplay} />}  />
+        <Route path="/feedback-display" element={<ProtectedRouteForAgents element={FeedbackDisplay} />} />
+        <Route path="/concern-request-list" element={<ProtectedRouteForUsers element={RequestList} />}  />
+        <Route path="/chat/:requestId" element={<ProtectedRouteForUsers element={Chat} />} />
       </Routes >
       <ToastContainer />
       {showNavbar && <Chatbot />}
