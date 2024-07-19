@@ -215,7 +215,7 @@ const Signup = () => {
                 try {
                     const encodeBase64 = btoa(formData.password);
 
-                    const response = await axios.post('https://ljlnie0hfj.execute-api.us-east-1.amazonaws.com/dev/sign-up', {
+                    const response = await axios.post('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/sign-up', {
                         email: formData.email,
                         password: encodeBase64,
                         firstName: formData.firstName,
@@ -250,7 +250,7 @@ const Signup = () => {
                   }
             } else if (activeStep === 1) {
                 try {
-                    const response = await axios.post('https://ljlnie0hfj.execute-api.us-east-1.amazonaws.com/dev/verify-email', {
+                    const response = await axios.post('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/email-verification', {
                       // Provide necessary data for verification code API call
                       action: 'verifyVerificationCode',
                       email: formData.email,
@@ -285,7 +285,7 @@ const Signup = () => {
 
             } else if (activeStep === 3) {
                 try {
-                    const response = await axios.post('https://ljlnie0hfj.execute-api.us-east-1.amazonaws.com/dev/security-and-secretkey-add', {
+                    const response = await axios.post('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/second-factor-auth', {
                       action: 'add',
                       body: {
                         email: formData.email,
@@ -376,7 +376,7 @@ const Signup = () => {
 
     const handleResendCode = async () => {
         try {
-            const response = await axios.post('https://ljlnie0hfj.execute-api.us-east-1.amazonaws.com/dev/verify-email', {
+            const response = await axios.post('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/email-verification', {
                 action: 'sendVerificationCode',
                 email: formData.email,
             });

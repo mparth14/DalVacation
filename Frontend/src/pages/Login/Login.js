@@ -149,7 +149,7 @@ const Login = () => {
 
                 const encodeBase64 = btoa(formData.password);
 
-                const response = await axios.get('https://2oi0rkpty0.execute-api.us-east-1.amazonaws.com/test1/user-auth', {
+                const response = await axios.get('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/login', {
                     params: {
                         email: formData.email,
                         password: encodeBase64,
@@ -163,6 +163,8 @@ const Login = () => {
                         sessionStorage.setItem('accessToken', response.data.user.accessToken);
                         sessionStorage.setItem('idToken', response.data.user.user_id);
                         sessionStorage.setItem('refreshToken', response.data.user.refreshToken);
+                        sessionStorage.setItem('user', JSON.stringify(response.data.user));
+                        localStorage.setItem('user', JSON.stringify(response.data.user));
                         login(response.data.user);
                         // Proceed to security question step
                         // Simulate getting a random security question
@@ -275,7 +277,7 @@ const Login = () => {
         } else if (activeStep === 2) {
             // Fetch third factor authentication
             try {
-                const response = await axios.get('https://2oi0rkpty0.execute-api.us-east-1.amazonaws.com/test1/secret-key-verify', {
+                const response = await axios.get('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/secret-key-verify', {
                     params: {
                         email: formData.email,
                         secretKeyVerify: formData.securityKey,
