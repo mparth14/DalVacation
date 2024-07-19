@@ -1,13 +1,17 @@
 import React from 'react';
 import { AppBar, Box, Button, IconButton, Menu, MenuItem, Toolbar, Typography } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import MenuIcon from '@mui/icons-material/Menu';
+import ServiceIcon from '@mui/icons-material/Assignment';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 function ResponsiveAppBar() {
   const { user, logout } = useAuth();
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const navigate = useNavigate();
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -27,18 +31,27 @@ function ResponsiveAppBar() {
 
   const handleLoginClick = () => {
     if (user) {
-      // If user is logged in, handle as per your application's logic
-      // For simplicity, this example logs the user out on click if already logged in
       logout();
     } else {
-      // Redirect to login page if not logged in
-      window.location.href = '/login';
+      navigate('/login');
     }
   };
 
+  const handleServiceRequestClick = () => {
+    const userData = JSON.parse(sessionStorage.getItem('user')) || {};
+    const userId = userData.user_id;
+    const userType = userData.userType;
+
+    navigate('/concern-request-list', {
+      state: {
+        userId: userId,
+        userType: userType
+      }
+    });
+  };
+
   const handleSignupClick = () => {
-    // Redirect to signup page
-    window.location.href = '/signup';
+    navigate('/signup');
   };
 
   return (
@@ -73,7 +86,18 @@ function ResponsiveAppBar() {
         <Box sx={{ flexGrow: 1 }} />
         {user ? (
           <>
-            <Button color="inherit" onClick={handleOpenUserMenu}>
+            <Button
+              color="inherit"
+              onClick={handleServiceRequestClick}
+              startIcon={<ServiceIcon />}
+            >
+              Service Request
+            </Button>
+            <Button
+              color="inherit"
+              onClick={handleOpenUserMenu}
+              startIcon={<AccountCircle />}
+            >
               {user.email}
             </Button>
             <Menu
@@ -90,7 +114,10 @@ function ResponsiveAppBar() {
                 horizontal: 'right',
               }}
             >
-              <MenuItem onClick={logout}>Logout</MenuItem>
+              <MenuItem onClick={logout}>
+                <LogoutIcon sx={{ mr: 1 }} />
+                Logout
+              </MenuItem>
             </Menu>
           </>
         ) : (

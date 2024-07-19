@@ -18,6 +18,8 @@ import RoomDetails from './pages/RoomDetails/RoomDetails';
 import ManageRooms from './pages/ManageRooms/ManageRooms';
 import FeedbackForm from './pages/Feedback/FeedbackForm';
 import FeedbackDisplay from './pages/Feedback/FeedbackDisplay';
+import Chat from './components/PubSub/Chat';
+import RequestList from './components/PubSub/RequestList';
 
 const App = () => {
   return (
@@ -36,7 +38,9 @@ const App = () => {
 
 const Main = () => {
   const location = useLocation();
-  const showNavbar = location.pathname !== '/login' && location.pathname !== '/signup';
+  
+  const hideNavbarRoutes = ['/login', '/signup', '/concern-request-list'];
+  const showNavbar = !hideNavbarRoutes.includes(location.pathname) && !location.pathname.startsWith('/chat/');
 
   return (
     <>
@@ -50,9 +54,11 @@ const Main = () => {
         <Route path="/manage-rooms" element={<ManageRooms />} />
         <Route path="/feedback" element={<FeedbackForm />} />
         <Route path="/feedback-display" element={<FeedbackDisplay />} />
+        <Route path="/concern-request-list" element={<RequestList />} />
+        <Route path="/chat/:requestId" element={<Chat />} />
       </Routes >
       <ToastContainer />
-      <Chatbot />
+      {showNavbar && <Chatbot />}
     </>
   );
 };

@@ -1,0 +1,1262 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template for deploying Lambda function and API Gateway for user authentication
+
+Parameters:
+  Stage:
+    Type: String
+    Default: test1
+  RoleARN:
+    Type: String
+    Default: "arn:aws:iam::705544929821:role/service-role/GetSummerCourses-role-a3xrd2hc"
+  Region:
+    Type: String
+    Default: "us-east-1"
+
+Resources:
+  FirstFactorAuthentication:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: 'index.handler'
+      Role: !Ref RoleARN
+      Code:
+        ZipFile: |
+          const { CognitoIdentityProviderClient, InitiateAuthCommand, AdminListGroupsForUserCommand } = require('@aws-sdk/client-cognito-identity-provider');
+          const { DynamoDBClient, UpdateItemCommand, GetItemCommand } = require("@aws-sdk/client-dynamodb");
+          const { DynamoDBDocumentClient, UpdateCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
+          const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
+
+          const dbClient = new DynamoDBClient({ region: process.env.AWS_REGION });
+          const cognitoClient = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
+          const ddbDocClient = DynamoDBDocumentClient.from(dbClient);
+
+          const snsClient = new SNSClient({});
+
+          const poolData = {
+            UserPoolId: "us-east-1_D8LhOZMJq",
+            ClientId: "7obkafbfl095gprlo6gli6je55",
+          };
+
+          exports.handler = async (event) => {
+            const response = {
+              statusCode: 200,
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "OPTIONS,GET"
+              }
+            };
+
+            const { email, password } = event.queryStringParameters;
+
+            if (!email || !password) {
+              return {
+                ...response,
+                statusCode: 400,
+                body: JSON.stringify({ message: 'Email and password are required' }),
+              };
+            }
+
+            try {
+              // Authenticate user and get tokens using the login function
+              const tokens = await login(email, password);
+
+              // Fetch encrypted secret key and encryption shift from DynamoDB
+              const getParams = {
+                TableName: 'User',
+                Key: { email },
+              };
+
+              const data = await ddbDocClient.send(new GetCommand(getParams));
+              if (!data.Item) {
+                return {
+                  ...response,
+                  statusCode: 404,
+                  body: JSON.stringify({ message: 'User not found' }),
+                };
+              }
+        
+              const { cityBorn, favoriteColor, favoriteSports, secretKey, topicArn, firstName} = data.Item;
+
+
+              // Check if user is verified
+              // const userResponse = await getUserAttributes(email);
+
+              // Check if security questions and secret key exist
+              // const { cityBorn, favoriteColor, favoriteSports, secretKey, firstName } = userResponse.Item;
+    
+              if (!cityBorn || !favoriteColor || !favoriteSports || !secretKey || !firstName) {
+                return {
+                  ...response,
+                  statusCode: 400,
+                  body: JSON.stringify({ message: 'Security questions and secret key are required for your account.' }),
+                };
+              }
+
+              // Check if user belongs to required groups
+              const groupInfo = await checkUserGroups(email);
+
+              // Update user's tokens in DynamoDB
+              const updateTokensParams = {
+                TableName: process.env.USERS_TABLE_NAME,
+                Key: {
+                  email: { S: email },
+                },
+                UpdateExpression: "SET accessToken = :accessToken, refreshToken = :refreshToken",
+                ExpressionAttributeValues: {
+                  ":accessToken": { S: tokens.accessToken },
+                  ":refreshToken": { S: tokens.refreshToken },
+                },
+              };
+
+              try {
+                await dbClient.send(new UpdateItemCommand(updateTokensParams));
+                console.log("Tokens updated in DynamoDB for user:", email);
+              } catch (updateError) {
+                console.error("Error updating tokens in DynamoDB:", updateError);
+                return {
+                  ...response,
+                  statusCode: 400,
+                  body: { message: 'Error updating tokens in DynamoDB.' },
+                };
+              }
+            
+              // if(topicArn){
+              //     // Send registration success email via SNS
+              //   const publishParams = {
+              //     TopicArn: String(topicArn),
+              //     Message: `Welcome to Dal-Vacation-Home, ${firstName}. To get started, log in with your credentials and start exploring our services.`,
+              //     Subject: 'User logged in',
+              //   };
+          
+              //   try {
+              //     await snsClient.send(new PublishCommand(publishParams));
+              //   } catch (snsError) {
+              //     console.error('Error sending SNS message:', snsError);
+              //     // Handle the error appropriately, such as returning an error response
+              //     return {
+              //       ...response,
+              //       statusCode: 500,
+              //       body: { message: 'Error sending registration success email' }
+              //     };
+              //   }
+              // }
+              // Return successful response with tokens and group information
+              
+              
+              const userData = await ddbDocClient.send(new GetCommand(getParams));
+              if (!userData.Item) {
+                return {
+                  ...response,
+                  statusCode: 404,
+                  body: JSON.stringify({ message: 'User not found' }),
+                };
+              }
+
+
+              return {
+                ...response,
+                statusCode: 200,
+                body:JSON.stringify({
+                  groups: groupInfo,
+                  user: userData.Item
+                 }),
+              };
+            } catch (error) {
+              console.error('Login failed:', error);
+              // Return error response
+              return {
+                ...response,
+                statusCode: 500,
+                body: JSON.stringify({ message: 'Error during login.' + error.message }),
+              };
+            }
+          };
+
+          const login = async (email, password) => {
+            const initiateAuthParams = {
+              AuthFlow: 'USER_PASSWORD_AUTH',
+              ClientId: poolData.ClientId,
+              AuthParameters: {
+                USERNAME: email,
+                PASSWORD: password,
+              },
+            };
+
+            try {
+              // Initiate authentication
+              const authResponse = await cognitoClient.send(new InitiateAuthCommand(initiateAuthParams));
+
+              // Extract tokens
+              const tokens = {
+                accessToken: authResponse.AuthenticationResult.AccessToken,
+                idToken: authResponse.AuthenticationResult.IdToken,
+                refreshToken: authResponse.AuthenticationResult.RefreshToken,
+              };
+
+              return tokens;
+            } catch (error) {
+              console.error("Error during user authentication:", error);
+              throw error;
+            }
+          };
+
+          const getUserAttributes = async (email) => {
+            const params = {
+              TableName: process.env.USERS_TABLE_NAME,
+              Key: {
+                email: { S: email },
+              },
+            };
+
+            try {
+              const data = await dbClient.send(new GetItemCommand(params));
+              return data;
+            } catch (error) {
+              console.error("Error fetching user attributes:", error);
+              throw error;
+            }
+          };
+
+          const checkUserGroups = async (email) => {
+            const params = {
+              UserPoolId: poolData.UserPoolId,
+              Username: email,
+            };
+
+            try {
+              const groupsResponse = await cognitoClient.send(new AdminListGroupsForUserCommand(params));
+              const groups = groupsResponse.Groups.map(group => group.GroupName);
+
+              return groups;
+            } catch (error) {
+              console.error("Error checking user groups:", error);
+              throw error;
+            }
+          };
+      Runtime: 'nodejs20.x'
+      Timeout: 30
+      Environment:
+        Variables:
+          USERS_TABLE_NAME: "User"
+
+  ApiGatewayRestApi:
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties:
+      Name: 'UserAuthApi'
+      ApiKeySourceType: "HEADER"
+      EndpointConfiguration:
+        Types:
+          - "REGIONAL"
+
+  ApiGatewayResourceUserAuth:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: 'login'
+
+  ApiGatewayMethodUserAuth:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResourceUserAuth
+      HttpMethod: GET
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestParameters:
+        "method.request.querystring.email": true
+        "method.request.querystring.password": true
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseModels:
+            "application/json": "Empty"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,token'"
+            method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResourceUserAuth
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FirstFactorAuthentication.Arn}/invocations"
+        PassthroughBehavior: "WHEN_NO_MATCH"
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates: { }
+
+  UserAuthFunctionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt FirstFactorAuthentication.Arn
+      Principal: apigateway.amazonaws.com
+
+  ApiGatewayMethodOptionsUserAuth:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResourceUserAuth
+      HttpMethod: "OPTIONS"
+      AuthorizationType: "NONE"
+      ApiKeyRequired: false
+      RequestParameters: { }
+      MethodResponses:
+        - ResponseModels:
+            "application/json": "Empty"
+          ResponseParameters:
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          StatusCode: "200"
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResourceUserAuth
+        IntegrationResponses:
+          - ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'GET,POST,PUT,DELETE,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates: { }
+            StatusCode: "200"
+        RequestTemplates:
+          "application/json": "{statusCode:200}"
+        Type: "MOCK"
+
+  ThirdFactorAuthentication:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: 'index.handler'
+      Role: !Ref RoleARN
+      Code:
+        ZipFile: |
+          const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+          const { DynamoDBDocumentClient, GetCommand } = require("@aws-sdk/lib-dynamodb");
+          const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
+
+          const ddbClient = new DynamoDBClient({});
+          const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
+          const snsClient = new SNSClient({});
+
+          exports.handler = async (event) => {
+            const response = {
+              statusCode: 200,
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "OPTIONS,GET"
+              }
+            };
+
+            const { email, secretKeyVerify } = event.queryStringParameters;
+
+            // Validate input
+            if (!email || !secretKeyVerify) {
+              return {
+                ...response,
+                statusCode: 400,
+                body: JSON.stringify({ message: 'Email and secretKey are required' }),
+              };
+            }
+
+            // Fetch encrypted secret key and encryption shift from DynamoDB
+            const getParams = {
+              TableName: 'User',
+              Key: { email },
+            };
+
+            try {
+              const data = await ddbDocClient.send(new GetCommand(getParams));
+
+              if (!data.Item) {
+                return {
+                  ...response,
+                  statusCode: 404,
+                  body: JSON.stringify({ message: 'User not found' }),
+                };
+              }
+
+              const { secretKey, shiftValue, topicArn, firstName } = data.Item;
+
+              // Decrypt the secret key using Caesar cipher and the shift value from DynamoDB
+              const decryptedSecretKey = decryptCaesarCipher(secretKey, shiftValue);
+
+              // Compare decrypted secret key with user-provided secret key
+              if (secretKeyVerify !== decryptedSecretKey) {
+                return {
+                  ...response,
+                  statusCode: 403,
+                  body: JSON.stringify({ message: 'Incorrect secret key' }),
+                };
+              }
+
+              if (topicArn) {
+                const publishParams = {
+                  TopicArn: topicArn,
+                  Message: `Welcome to Dal-Vacation-Home, ${firstName}. \n You are now logged in. Start using our services.`,
+                  Subject: 'User Login at Dal-Vacation-Home',
+                };
+
+                try {
+                  await snsClient.send(new PublishCommand(publishParams));
+                } catch (snsError) {
+                  console.error('Error sending SNS message:', snsError);
+                  // Handle the error appropriately, such as returning an error response
+                  // return {
+                  //   ...response,
+                  //   statusCode: 500,
+                  //   body: { message: 'Error sending registration success email' }
+                  // };
+                }
+              }
+
+              return {
+                ...response,
+                statusCode: 200,
+                body: JSON.stringify({ message: 'Authentication successful' }),
+              };
+            } catch (error) {
+              console.error('Error fetching data from DynamoDB:', error);
+              return {
+                ...response,
+                statusCode: 500,
+                body: JSON.stringify({ message: 'Error fetching data from DynamoDB' }),
+              };
+            }
+          };
+
+          // Decrypts the Caesar cipher encrypted text
+          function decryptCaesarCipher(encryptedText, shift) {
+            const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+
+            let decryptedText = '';
+
+            for (let i = 0; i < encryptedText.length; i++) {
+              const char = encryptedText[i];
+              const index = alphabet.indexOf(char.toLowerCase());
+
+              if (index === -1) {
+                // If character is not in the alphabet (like spaces or punctuation), keep it unchanged
+                decryptedText += char;
+              } else {
+                // Decrypt the character using the shift
+                let decryptedIndex = (index - shift + alphabet.length) % alphabet.length;
+                if (decryptedIndex < 0) {
+                  decryptedIndex += alphabet.length; // Handle negative indices
+                }
+                decryptedText += char === char.toUpperCase() ? alphabet[decryptedIndex].toUpperCase() : alphabet[decryptedIndex];
+              }
+            }
+
+            return decryptedText;
+          }
+
+      Runtime: 'nodejs20.x'
+      Timeout: 30
+      Environment:
+        Variables:
+          USERS_TABLE_NAME: "User"
+
+  SecretKeyVerificationFunctionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt ThirdFactorAuthentication.Arn
+      Principal: apigateway.amazonaws.com
+
+  ApiGatewayResourceSecretKeyVerification:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: 'secret-key-verify'
+
+  ApiGatewayMethodSecretKeyVerification:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResourceSecretKeyVerification
+      HttpMethod: GET
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestParameters:
+        "method.request.querystring.email": true
+        "method.request.querystring.secretKeyVerify": true
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseModels:
+            "application/json": "Empty"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,token'"
+            method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResourceSecretKeyVerification
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ThirdFactorAuthentication.Arn}/invocations"
+        PassthroughBehavior: "WHEN_NO_MATCH"
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates: { }
+
+  ApiGatewayMethodOptionsSecretKeyVerification:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResourceSecretKeyVerification
+      HttpMethod: "OPTIONS"
+      AuthorizationType: "NONE"
+      ApiKeyRequired: false
+      RequestParameters: { }
+      MethodResponses:
+        - ResponseModels:
+            "application/json": "Empty"
+          ResponseParameters:
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          StatusCode: "200"
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResourceSecretKeyVerification
+        IntegrationResponses:
+          - ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'GET,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates: { }
+            StatusCode: "200"
+        RequestTemplates:
+          "application/json": "{statusCode:200}"
+        Type: "MOCK"
+
+  SecondFactorAuthentication:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: 'index.handler'
+      Role: !Ref RoleARN
+      Code:
+        ZipFile: |
+          const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+          const { DynamoDBDocumentClient, UpdateCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
+          const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
+
+          const client = new DynamoDBClient({});
+          const ddbDocClient = DynamoDBDocumentClient.from(client);
+          const snsClient = new SNSClient({});
+
+          // Caesar Cipher encryption function
+          const caesarCipherEncrypt = (text, shift) => {
+            return text.split('').map(char => {
+              const code = char.charCodeAt();
+              // Encrypt letters only
+              if (char >= 'a' && char <= 'z') {
+                return String.fromCharCode(((code - 97 + shift) % 26) + 97);
+              } else if (char >= 'A' && char <= 'Z') {
+                return String.fromCharCode(((code - 65 + shift) % 26) + 65);
+              }
+              return char;
+            }).join('');
+          };
+
+          exports.handler = async (event) => {
+            const response = {
+              statusCode: 200,
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "OPTIONS,POST"
+              }
+            };
+
+            const action = event.action;
+
+            if (action === "add") {
+              console.log(event.body);
+              const { email, favoriteColor, cityBorn, favoriteSports, secretKey } = event.body;
+
+              // Validate input
+              if (!email || !favoriteColor || !cityBorn || !favoriteSports || !secretKey) {
+                return {
+                  ...response,
+                  statusCode: 400,
+                  body: JSON.stringify({ message: 'Email, favorite color, city born, favorite sports, and secret key are required' }),
+                };
+              }
+
+              // Caesar cipher shift value
+              const shift = 3; // You can change this value as needed
+              const encryptedKey = caesarCipherEncrypt(secretKey, shift);
+
+              // Construct the update expression
+              let updateExpression = 'SET';
+              const expressionAttributeValues = {};
+
+              if (favoriteColor) {
+                updateExpression += ' favoriteColor = :favoriteColor,';
+                expressionAttributeValues[':favoriteColor'] = favoriteColor;
+              }
+              if (cityBorn) {
+                updateExpression += ' cityBorn = :cityBorn,';
+                expressionAttributeValues[':cityBorn'] = cityBorn;
+              }
+              if (favoriteSports) {
+                updateExpression += ' favoriteSports = :favoriteSports,';
+                expressionAttributeValues[':favoriteSports'] = favoriteSports;
+              }
+              updateExpression += ' secretKey = :secretKey, shiftValue = :shiftValue,';
+              expressionAttributeValues[':secretKey'] = encryptedKey;
+              expressionAttributeValues[':shiftValue'] = shift;
+
+              // Remove trailing comma
+              updateExpression = updateExpression.slice(0, -1);
+
+              const params = {
+                TableName: 'User',
+                Key: { email },
+                UpdateExpression: updateExpression,
+                ExpressionAttributeValues: expressionAttributeValues,
+                ReturnValues: "UPDATED_NEW"
+              };
+
+              // Fetch encrypted secret key and encryption shift from DynamoDB
+              const getParams = {
+                TableName: 'User',
+                Key: { email },
+              };
+
+              try {
+                const result = await ddbDocClient.send(new UpdateCommand(params));
+                const data = await ddbDocClient.send(new GetCommand(getParams));
+                if (!data.Item) {
+                  return {
+                    ...response,
+                    statusCode: 404,
+                    body: JSON.stringify({ message: 'User not found' }),
+                  };
+                }
+
+                const { topicArn, firstName} = data.Item;
+
+                // Send registration success email via SNS
+                const publishParams = {
+                  TopicArn: topicArn,
+                  Message: `Welcome to Dal-Vacation-Home, ${firstName}. To get started, log in with your credentials and start exploring our services.`,
+                  Subject: 'User Registration',
+                };
+
+                try {
+                  await snsClient.send(new PublishCommand(publishParams));
+                } catch (snsError) {
+                  console.error('Error sending SNS message:', snsError);
+                  // Handle the error appropriately, such as returning an error response
+                  // console.error('Error sending registration success email', snsError);
+                  // return {
+                  //   ...response,
+                  //   statusCode: 500,
+                  //   body: { message: 'Error sending registration success email' }
+                  // };
+                }
+
+                return {
+                  ...response,
+                  statusCode: 200,
+                  body: JSON.stringify({ message: 'Security questions and secret key added successfully', updatedAttributes: result.Attributes })
+                };
+              } catch (error) {
+                console.error('Error adding security questions:', error);
+                return {
+                  ...response,
+                  statusCode: 500,
+                  body: JSON.stringify({ message: `Error adding security questions: ${error.message}` })
+                };
+              }
+            } else if (action === "fetch") {
+              const { email, columns } = event.body;
+
+              // Validate input
+              if (!email || !columns || !Array.isArray(columns) || columns.length === 0) {
+                return {
+                  ...response,
+                  statusCode: 400,
+                  body: JSON.stringify({ message: 'Email and non-empty array of columns are required' }),
+                };
+              }
+
+              const params = {
+                TableName: 'User',
+                Key: { email }
+              };
+
+              try {
+                const data = await ddbDocClient.send(new GetCommand(params));
+                if (!data.Item) {
+                  return {
+                    ...response,
+                    statusCode: 404,
+                    body: JSON.stringify({ message: 'User not found' })
+                  };
+                }
+
+                const result = {};
+                columns.forEach(column => {
+                  if (data.Item[column]) {
+                    result[column] = data.Item[column];
+                  }
+                });
+
+                return {
+                  ...response,
+                  statusCode: 200,
+                  body: JSON.stringify(result)
+                };
+              } catch (error) {
+                console.error('Error fetching columns:', error);
+                return {
+                  ...response,
+                  statusCode: 500,
+                  body: JSON.stringify({ message: `Error fetching columns: ${error.message}` })
+                };
+              }
+            } else {
+              return {
+                ...response,
+                statusCode: 400,
+                body: JSON.stringify({ message: 'Invalid action' })
+              };
+            }
+          };
+      Runtime: 'nodejs20.x'
+      Timeout: 30
+      Environment:
+        Variables:
+          USERS_TABLE_NAME: "User"
+
+  SecondFactorFunctionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt SecondFactorAuthentication.Arn
+      Principal: apigateway.amazonaws.com
+
+  ApiGatewayResourceSecondFactor:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: 'second-factor-auth'
+
+  ApiGatewayMethodSecondFactor:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResourceSecondFactor
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestParameters: { }
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseModels:
+            "application/json": "Empty"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,token'"
+            method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResourceSecondFactor
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SecondFactorAuthentication.Arn}/invocations"
+        PassthroughBehavior: "WHEN_NO_MATCH"
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates: { }
+
+  ApiGatewayMethodOptionsSecondFactor:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResourceSecondFactor
+      HttpMethod: "OPTIONS"
+      AuthorizationType: "NONE"
+      ApiKeyRequired: false
+      RequestParameters: { }
+      MethodResponses:
+        - ResponseModels:
+            "application/json": "Empty"
+          ResponseParameters:
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          StatusCode: "200"
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResourceSecondFactor
+        IntegrationResponses:
+          - ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates: { }
+            StatusCode: "200"
+        RequestTemplates:
+          "application/json": "{statusCode:200}"
+        Type: "MOCK"
+
+  EmailVerification:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: 'index.handler'
+      Role: !Ref RoleARN
+      Code:
+        ZipFile: |
+          const { CognitoIdentityProviderClient, ConfirmSignUpCommand, ResendConfirmationCodeCommand } = require('@aws-sdk/client-cognito-identity-provider');
+
+          exports.handler = async (event) => {
+            const response = {
+              statusCode: 200,
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "OPTIONS,POST"
+              }
+            };
+
+            // Extract parameters from the event
+            const { action, email, verificationCode } = event;
+
+            // Create an instance of the Cognito Identity Provider client
+            const client = new CognitoIdentityProviderClient({ region: 'us-east-1' });
+
+            try {
+              if (action === 'sendVerificationCode') {
+                // Create a command to resend confirmation code
+                const resendCommand = new ResendConfirmationCodeCommand({
+                  ClientId: process.env.COGNITO_CLIENT_ID,
+                  Username: email,
+                });
+
+                // Send the resend command to Cognito
+                const data = await client.send(resendCommand);
+                console.log('Resend confirmation code response:', data);
+
+                return {
+                  ...response,
+                  body: JSON.stringify({ message: 'Verification code sent successfully' })
+                };
+              } else if (action === 'verifyVerificationCode') {
+                // Create a command to confirm the sign-up
+                const confirmCommand = new ConfirmSignUpCommand({
+                  ClientId: process.env.COGNITO_CLIENT_ID,
+                  Username: email,
+                  ConfirmationCode: verificationCode
+                });
+
+                // Send the confirmation command to Cognito
+                const data = await client.send(confirmCommand);
+                console.log('Confirmation response:', data);
+
+                // If confirmation is successful, data will contain relevant information
+                return {
+                  ...response,
+                  body: JSON.stringify({ message: 'Email verification successful' })
+                };
+              } else {
+                return {
+                  ...response,
+                  statusCode: 400,
+                  body: JSON.stringify({ message: 'Invalid action specified' })
+                };
+              }
+            } catch (error) {
+              console.error('Error processing action:', error);
+              return {
+                ...response,
+                statusCode: 500,
+                body: JSON.stringify({ message: 'Error processing action', error: error.message })
+              };
+            }
+          };
+      Runtime: 'nodejs20.x'
+      Timeout: 30
+      Environment:
+        Variables:
+          COGNITO_CLIENT_ID: "7obkafbfl095gprlo6gli6je55"
+
+  EmailVerificationFunctionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt EmailVerification.Arn
+      Principal: apigateway.amazonaws.com
+
+  ApiGatewayResourceEmailVerification:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: 'email-verification'
+
+  ApiGatewayMethodEmailVerification:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResourceEmailVerification
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestParameters: {}
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseModels:
+            "application/json": "Empty"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,token'"
+            method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResourceEmailVerification
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EmailVerification.Arn}/invocations"
+        PassthroughBehavior: "WHEN_NO_MATCH"
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates: { }
+
+  ApiGatewayMethodOptionsEmailVerification:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResourceEmailVerification
+      HttpMethod: "OPTIONS"
+      AuthorizationType: "NONE"
+      ApiKeyRequired: false
+      RequestParameters: { }
+      MethodResponses:
+        - ResponseModels:
+            "application/json": "Empty"
+          ResponseParameters:
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          StatusCode: "200"
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResourceEmailVerification
+        IntegrationResponses:
+          - ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates: { }
+            StatusCode: "200"
+        RequestTemplates:
+          "application/json": "{statusCode:200}"
+        Type: "MOCK"
+
+  SignUp:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: 'index.handler'
+      Role: !Ref RoleARN
+      Code:
+        ZipFile: |
+          const { CognitoIdentityProviderClient, SignUpCommand, AdminAddUserToGroupCommand } = require('@aws-sdk/client-cognito-identity-provider');
+          const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
+          const { CreateTopicCommand, SubscribeCommand, SNSClient } = require('@aws-sdk/client-sns');
+
+          const snsClient = new SNSClient({ region: 'us-east-1' });
+          const cognitoClient = new CognitoIdentityProviderClient({ region: 'us-east-1' });
+          const ddbClient = new DynamoDBClient({ region: 'us-east-1' });
+
+          const poolData = {
+            UserPoolId: "us-east-1_D8LhOZMJq",
+            ClientId: "7obkafbfl095gprlo6gli6je55",
+          };
+
+          exports.handler = async (event) => {
+            const response = {
+              statusCode: 200,
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "OPTIONS,POST"
+              }
+            };
+
+            const { password, email, firstName, lastName, groupToAdd } = event; // used when testing from API Gateway
+
+            // Validate input
+            if (!password || !email || !firstName || !lastName) {
+              return {
+                ...response,
+                statusCode: 400,
+                body: JSON.stringify({ message: 'Password, email, first name, and last name are required' }),
+              };
+            }
+
+            // Prepare attributes
+            const attributeList = [
+              { Name: 'email', Value: email },
+              { Name: 'given_name', Value: firstName },
+              { Name: 'family_name', Value: lastName },
+            ];
+
+            // Prepare sign-up parameters
+            const signUpParams = {
+              ClientId: poolData.ClientId,
+              Password: password,
+              Username: email,
+              UserAttributes: attributeList,
+            };
+
+            try {
+              const signUpData = await cognitoClient.send(new SignUpCommand(signUpParams));
+              console.log('Sign up successful:', signUpData);
+
+              // If user signed up successfully, assign them to a group
+              const addUserToGroupParams = {
+                GroupName: groupToAdd,
+                Username: email,
+                UserPoolId: poolData.UserPoolId,
+              };
+
+              await cognitoClient.send(new AdminAddUserToGroupCommand(addUserToGroupParams));
+              console.log('User added to group:', groupToAdd);
+
+              // Extract part of email before @ for topic name
+              const userName = email.substring(0, email.indexOf('@'));
+              const topicName = `topic-${userName}`;
+
+              // Create an SNS topic with the modified topic name
+              const createTopicParams = {
+                Name: topicName,
+              };
+
+              // Generate a unique user_id
+              const userId = signUpData.UserSub; // Using Cognito UserSub as user_id
+              console.log('Creating SNS topic with name:', topicName);
+
+              const createTopicResponse = await snsClient.send(new CreateTopicCommand(createTopicParams));
+              const createdArn = createTopicResponse.TopicArn;
+              console.log('SNS topic created:', createdArn);
+
+              // Subscribe the user's email to the SNS topic
+              const subscribeParams = {
+                Protocol: 'email',
+                Endpoint: email,
+                TopicArn: createdArn,
+              };
+
+              await snsClient.send(new SubscribeCommand(subscribeParams));
+              console.log(`Subscribed ${email} to topic:`, createdArn);
+
+              // Store the user in DynamoDB
+              const ddbParams = {
+                TableName: 'User',
+                Item: {
+                  'user_id': { S: userId },
+                  'email': { S: email },
+                  'firstName': { S: firstName },
+                  'password': { S: password },
+                  'lastName': { S: lastName },
+                  'topicArn': { S: createdArn }, // Store the created topic ARN in DynamoDB
+                  'userType': {S: groupToAdd},
+                }
+              };
+
+              await ddbClient.send(new PutItemCommand(ddbParams));
+              console.log('User stored in DynamoDB with topic ARN:', createdArn);
+
+              // Return success response
+              return {
+                ...response,
+                statusCode: 200,
+                body: JSON.stringify({ message: 'User signed up successfully', topicArn: createdArn }),
+              };
+            } catch (err) {
+              console.error('Error signing up or adding user to group:', err);
+              // Specific error handling
+              let errorMessage = 'An error occurred while signing up the user.';
+              if (err.name === 'UsernameExistsException') {
+                errorMessage = 'An account with this email already exists.';
+              } else if (err.name === 'InvalidPasswordException') {
+                errorMessage = 'Password does not meet the required criteria.';
+              } else if (err.name === 'InvalidParameterException') {
+                errorMessage = 'Invalid parameter provided. Please check your input.';
+              } else if (err.name === 'UserNotFoundException') {
+                errorMessage = 'User not found.';
+              } else if (err.name === 'NotAuthorizedException') {
+                errorMessage = 'You are not authorized to perform this action.';
+              } else if (err.name === 'ResourceNotFoundException') {
+                errorMessage = 'The requested resource was not found.';
+              }
+
+              // Return error response
+              return {
+                ...response,
+                statusCode: 500,
+                body: JSON.stringify({ message: errorMessage }),
+              };
+            }
+          };
+      Runtime: 'nodejs20.x'
+      Timeout: 30
+      Environment:
+        Variables:
+          USER_POOL_ID: "us-east-1_D8LhOZMJq"
+          COGNITO_CLIENT_ID: "7obkafbfl095gprlo6gli6je55"
+          DDB_TABLE_NAME: "User"
+
+  SignUpFunctionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt SignUp.Arn
+      Principal: apigateway.amazonaws.com
+
+  ApiGatewayResourceSignUp:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: 'sign-up'
+
+  ApiGatewayMethodSignUp:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResourceSignUp
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestParameters: {}
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseModels:
+            "application/json": "Empty"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,token'"
+            method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResourceSignUp
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SignUp.Arn}/invocations"
+        PassthroughBehavior: "WHEN_NO_MATCH"
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates: { }
+
+  ApiGatewayMethodOptionsSignUp:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResourceSignUp
+      HttpMethod: "OPTIONS"
+      AuthorizationType: "NONE"
+      ApiKeyRequired: false
+      RequestParameters: { }
+      MethodResponses:
+        - ResponseModels:
+            "application/json": "Empty"
+          ResponseParameters:
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          StatusCode: "200"
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResourceSignUp
+        IntegrationResponses:
+          - ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            ResponseTemplates: { }
+            StatusCode: "200"
+        RequestTemplates:
+          "application/json": "{statusCode:200}"
+        Type: "MOCK"
+
+
+
+  ApiGatewayMethodOptionsRoot:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResourceRoot
+      HttpMethod: "OPTIONS"
+      AuthorizationType: "NONE"
+      ApiKeyRequired: false
+      RequestParameters: { }
+      MethodResponses:
+        - ResponseModels:
+            "application/json": "Empty"
+          ResponseParameters:
+            "method.response.header.Access-Control-Allow-Headers": false
+            "method.response.header.Access-Control-Allow-Methods": false
+            "method.response.header.Access-Control-Allow-Origin": false
+          StatusCode: "200"
+      Integration:
+        CacheNamespace: !Ref ApiGatewayResourceRoot
+        IntegrationResponses:
+          - ResponseParameters:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST,GET'"  # Update this with the allowed methods
+              "method.response.header.Access-Control-Allow-Origin": "'*'"
+            StatusCode: "200"
+        PassthroughBehavior: "WHEN_NO_MATCH"
+        RequestTemplates:
+          "application/json": "{\"statusCode\": 200}"
+        TimeoutInMillis: 29000
+        Type: "MOCK"
+
+  # OPTIONS method for the root resource
+  ApiGatewayResourceRoot:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: "{proxy+}"
+
+  ApiGatewayDeployment:
+    Type: 'AWS::ApiGateway::Deployment'
+    DependsOn:
+      - ApiGatewayMethodUserAuth
+      - ApiGatewayMethodOptionsUserAuth
+      - ApiGatewayMethodSecretKeyVerification
+      - ApiGatewayMethodOptionsSecretKeyVerification
+      - ApiGatewayMethodSecondFactor
+      - ApiGatewayMethodOptionsSecondFactor
+      - ApiGatewayMethodEmailVerification
+      - ApiGatewayMethodOptionsEmailVerification
+      - ApiGatewayMethodSignUp
+      - ApiGatewayMethodOptionsSignUp
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      StageName: !Ref Stage
+
+Outputs:
+  ApiUrl:
+    Description: 'URL for the API endpoint'
+    Value:
+      Fn::Sub: "https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/user-auth"
