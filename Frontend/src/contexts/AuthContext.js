@@ -11,6 +11,8 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         setUser(null);
+        localStorage.clear();
+        sessionStorage.clear();
     };
 
     return (

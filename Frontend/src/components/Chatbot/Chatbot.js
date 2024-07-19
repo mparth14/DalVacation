@@ -5,11 +5,11 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import Avatar from '@mui/material/Avatar';
 import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import CircularProgress from '@mui/material/CircularProgress';
 import { styled } from '@mui/system';
 
 AWS.config.update({
@@ -23,7 +23,7 @@ const StyledButton = styled(Button)({
   backgroundColor: '#ff6f61',
   color: '#fff',
   '&:hover': {
-      backgroundColor: '#ff3b2e',
+    backgroundColor: '#ff3b2e',
   },
   borderRadius: '8px',
   padding: '10px 20px',
@@ -35,7 +35,7 @@ const StyledButton = styled(Button)({
 const lexruntimev2 = new AWS.LexRuntimeV2();
 
 // Generate or retrieve userId
-let userId = sessionStorage.getItem('lexUserId');
+let userId = sessionStorage.getItem('idToken') || sessionStorage.getItem('lexUserId');
 if (!userId) {
   userId = uuidv4();
   sessionStorage.setItem('lexUserId', userId);
@@ -45,6 +45,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [showChat, setShowChat] = useState(false); // State to manage chat visibility
+  const [loading, setLoading] = useState(false); // State to manage loading indicator
 
   const messageEndRef = useRef(null);
 
@@ -60,20 +61,34 @@ const Chatbot = () => {
     setMessages(newMessages);
 
     const params = {
-      botAliasId: 'DO7EE9W4VP',  // Replace with your Lex V2 bot alias ID
-      botId: 'BVYSLWPTPD',  // Replace with your Lex V2 bot ID
-      localeId: 'en_US',  // Replace with your bot locale ID
-      sessionId: userId,
+      botAliasId: 'DO7EE9W4VP',
+      botId: 'BVYSLWPTPD',
+      localeId: 'en_US',
+      sessionId: sessionStorage.getItem('idToken') ? sessionStorage.getItem('idToken') : sessionStorage.getItem('lexUserId'),
       text: inputText,
     };
 
+    setLoading(true); // Show loading indicator
+
     lexruntimev2.recognizeText(params, (err, data) => {
+      setLoading(false); // Hide loading indicator after response
+
       if (err) {
         console.log(err, err.stack);
         return;
       }
-      const botMessage = data.messages && data.messages.length > 0 ? data.messages[0].content : "I couldn't understand that.";
-      setMessages([...newMessages, { text: botMessage, sender: 'bot' }]);
+
+      const botMessages = data.messages || [];
+      const intent = data.interpretations && data.interpretations[0].intent.name;
+
+      if ((intent === 'GetBookingDetails' || intent === 'TalkToAgent') && !sessionStorage.getItem('idToken')) {
+        const loginMessage = { text: 'You must log in to continue.', sender: 'bot' };
+        setMessages([...newMessages, loginMessage]);
+        return;
+      }
+
+      const updatedMessages = botMessages.map((message) => ({ text: message.content, sender: 'bot' }));
+      setMessages([...newMessages, ...updatedMessages]);
     });
 
     setInputText('');
@@ -89,7 +104,7 @@ const Chatbot = () => {
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // Prevents default behavior (submitting form)
+      e.preventDefault();
       handleSendMessage();
     }
   };
@@ -97,19 +112,10 @@ const Chatbot = () => {
   return (
     <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000 }}>
       {!showChat && (
-        // <Button
-        //   variant="contained"
-        //   color="primary"
-        //   onClick={toggleChat}
-        //   className="chat-button"
-        // >
-
-        // </Button>
-
-<StyledButton  variant="contained"  onClick={toggleChat}>
-<ChatBubbleOutlineIcon/>
-Chat Now
-</StyledButton>
+        <StyledButton variant="contained" onClick={toggleChat}>
+          <ChatBubbleOutlineIcon />
+          Chat Now
+        </StyledButton>
       )}
       {showChat && (
         <Paper sx={{ maxWidth: 400, width: '100%', p: 2 }}>
@@ -124,12 +130,17 @@ Chat Now
           <Box sx={{ maxHeight: 300, overflowY: 'auto', mt: 2 }}>
             {messages.map((msg, index) => (
               <Box key={index} className={`message ${msg.sender}`} sx={{ mb: 2 }}>
-                <Paper sx={{ p: 2, backgroundColor: msg.sender === 'bot' ? '#f0f0f0' : '#d3f4ff' }}>
+                <Paper sx={{ p: 2, backgroundColor: msg.sender === 'bot' ? '#ff6f61' : '#d9d9d9' }}>
                   <Typography variant="body1">{msg.text}</Typography>
                 </Paper>
               </Box>
             ))}
             <div ref={messageEndRef} />
+            {loading && (
+              <Box display="flex" justifyContent="center" mt={2}>
+                <CircularProgress color="primary" size={24} />
+              </Box>
+            )}
           </Box>
           <Box display="flex" alignItems="center" mt={2}>
             <TextField
@@ -140,17 +151,7 @@ Chat Now
               onKeyUp={handleKeyPress}
               placeholder="Type your message..."
             />
-            {/* <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSendMessage}
-              endIcon={<SendIcon />}
-              sx={{ ml: 2 }}
-            >
-              Send
-            </Button> */}
-
-            <StyledButton  variant="contained"  onClick={handleSendMessage} sx={{ ml: 2 }}>
+            <StyledButton variant="contained" onClick={handleSendMessage} sx={{ ml: 2 }}>
               Send
               <SendIcon />
             </StyledButton>

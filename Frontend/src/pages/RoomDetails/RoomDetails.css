@@ -1,69 +1,76 @@
-.room-details-container {
-    margin: 30px;
+.room-details-background {
+    background-image: url('https://images.pexels.com/photos/301673/pexels-photo-301673.jpeg?auto=compress&cs=tinysrgb&w=600');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
 }
 
-.carousel-tab {
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    align-content: center;
-    display: flex;
-    flex-direction: column;
+.room-details-container {
+    margin: 50px;
 }
 
 .room-carousel-image {
-    height: 500px;
+    height: 300px;
+    object-fit: cover;
+    margin: 20px;
 }
 
 .room-detail-items {
-flex: 1;
-display: flex;
-align-items: center;
-width: 100vw;
-justify-content: space-evenly;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    margin: 10px;
 }
 
 .room-detail-left{
     flex-direction: row ;
     display:flex;
-    align-content: center;
     justify-content: space-between;
-    align-items: center;
-}
-
-.room-detail-left-desc {
-    flex-direction: row;
-    display: flex;
-    justify-content: space-between;
-}
-
-.room-detail-right {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-content: center;
-    align-items: center;
 }
 
 .room-book-box {
-    margin: 30px;
-    padding: 30px;
-    border: 5px solid green;
-    border-radius: 50px;
+    margin: 10px;
+    padding: 20px;
+    border: 3px solid #ff6f61;
+    border-radius: 10px;
     flex-direction: column;
     display: flex;
     justify-content: center;
     align-items: center;
-    align-content: center;
 }
 
 .room-book-dates {
-flex-direction: row;
-display: flex;
-margin: 50px;
+    flex-direction: row;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    align-content: center;
+    margin: 5%;
+}
+.room-book-inputdate{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    align-content: center;
+    margin: 2%;
 }
 
-.room-book-inputdate {
-margin: 10px;
+.room-book-box input {
+    margin: 2%;
+}
+
+.room-book-box button {
+    margin: 10%;
+    width: 200px;
+    height: 50px;
+    border-radius: 10px;
+}
+
+.react-datepicker__input-container input{
+    width: 120px;
+    height: 30px;
 }

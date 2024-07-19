@@ -7,6 +7,8 @@ import { Carousel } from 'react-responsive-carousel';
 import axios from "axios";
 import "./RoomDetails.css";
 import { toast } from 'react-toastify';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const RoomDetails = () => {
     const { id } = useParams();
@@ -65,35 +67,28 @@ const RoomDetails = () => {
         <div className='room-details-container'>
             <h1>{room.room_name}</h1>
 
-            <div className='carousel-tab'>
-                <Carousel autoPlay={true} infiniteLoop={true} showThumbs={false} >
+            <Carousel autoPlay={true} infiniteLoop={true} showThumbs={false} >
 
-                    {room.images && room.images.length > 0 ? (
-                        room.images.map((image, index) => (
-                            <img key={index} className='room-carousel-image' src={image} />
-                        ))
-                    ) : (
-                        <img className='room-carousel-image' src="https://t3.ftcdn.net/jpg/02/48/42/64/360_F_248426448_NVKLywWqArG2ADUxDq6QprtIzsF82dMF.jpg" alt="Placeholder Image" />
-                    )}
+                {room.images && room.images.length > 0 ? (
+                    room.images.map((image, index) => (
+                        <img key={index} className='room-carousel-image' src={image} />
+                    ))
+                ) : (
+                    <img className='room-carousel-image' src="https://t3.ftcdn.net/jpg/02/48/42/64/360_F_248426448_NVKLywWqArG2ADUxDq6QprtIzsF82dMF.jpg" alt="Placeholder Image" />
+                )}
 
-                </Carousel>
-            </div>
+            </Carousel>
+
 
             <div className='room-detail-items'>
                 <div>
                     <div className='room-detail-left'>
                         <div>
-                            <p>{room.room_type} Room:</p>
-
-                            <div className='room-detail-left-desc'>
-                                <p> {room.no_of_beds} Beds, </p>
-                                <p> {room.no_of_baths} Baths,  </p>
-                                <p> {room.max_guests} Guests</p>
-                            </div>
+                            <h3>{room.room_type} Room:</h3>
+                            <p> {room.no_of_beds} Beds, {room.no_of_baths} Baths, {room.max_guests} Guests </p>
                         </div>
                         <h1>${room.price}</h1>
                     </div>
-
                     <p>{room.about}</p>
                     <div>
                         <ul>
@@ -104,44 +99,47 @@ const RoomDetails = () => {
                     </div>
 
                 </div>
-                <div className='room-detail-right'>
-                    <div className='room-book-box'>
-                        <div className='room-book-dates'>
-                            <input className='room-book-inputdate'
-                                placeholder="start date"
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                            />
-                            <input className='room-book-inputdate'
-                                placeholder="end date"
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
+                <div className='room-book-box'>
+                    <div className='room-book-dates'>
+                        <div className='room-book-inputdate'>
+                            <label>Start Date</label>
+                            <DatePicker
+                                selected={startDate}
+                                onChange={(date) => setStartDate(date)}
+                                placeholderText="yyyy-mm-dd"
+                                dateFormat="yyyy-MM-dd"
                             />
                         </div>
-                        <input
-                            placeholder="email"
-                            type="text"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <input
-                            placeholder="phone"
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                        />
-                        <input
-                            placeholder="0"
-                            type="number"
-                            value={guests}
-                            onChange={(e) => setGuests(e.target.value)}
-                        />
-                        <div>
-                            <button onClick={(event) => handleBooking(event)}>Book</button>
+
+                        <div className='room-book-inputdate'>
+                            <label>End Date</label>
+                            <DatePicker
+                                selected={endDate}
+                                onChange={(date) => setEndDate(date)}
+                                placeholderText="yyyy-mm-dd"
+                                dateFormat="yyyy-MM-dd"
+                            />
                         </div>
                     </div>
+                    <input
+                        placeholder="email"
+                        type="text"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <input
+                        placeholder="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                    />
+                    <input
+                        placeholder="0"
+                        type="number"
+                        value={guests}
+                        onChange={(e) => setGuests(e.target.value)}
+                    />
+                    <button onClick={(event) => handleBooking(event)}>BOOK</button>
                 </div>
             </div >
         </div >

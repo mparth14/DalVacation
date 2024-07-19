@@ -16,6 +16,8 @@ import Signup from './pages/Signup/Signup';
 import Dashboard from './pages/Dashboard/Dashboard';
 import RoomDetails from './pages/RoomDetails/RoomDetails';
 import ManageRooms from './pages/ManageRooms/ManageRooms';
+import FeedbackForm from './pages/Feedback/FeedbackForm';
+import FeedbackDisplay from './pages/Feedback/FeedbackDisplay';
 
 const App = () => {
   return (
@@ -40,13 +42,15 @@ const Main = () => {
     <>
       {showNavbar && <Navbar />}
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/room/:id" element={<RoomDetails />} />
         <Route path="/manage-rooms" element={<ManageRooms />} />
-      </Routes>
+        <Route path="/feedback" element={<FeedbackForm />} />
+        <Route path="/feedback-display" element={<FeedbackDisplay />} />
+      </Routes >
       <ToastContainer />
       <Chatbot />
     </>

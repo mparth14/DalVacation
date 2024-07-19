@@ -209,19 +209,15 @@ const Signup = () => {
 
     const handleNext = async () => {
         if (validate()) {
-            // Encrypt the password before making the API call
-            if (activeStep === 0) {
-                const encryptedPassword = CryptoJS.AES.encrypt(formData.password, 'secret-key').toString();
-                formData.password = encryptedPassword;
-                formData.confirmPassword = encryptedPassword;
-            }
 
             // Make API call here
             if (activeStep === 0) {
                 try {
+                    const encodeBase64 = btoa(formData.password);
+
                     const response = await axios.post('https://ljlnie0hfj.execute-api.us-east-1.amazonaws.com/dev/sign-up', {
                         email: formData.email,
-                        password: formData.password,
+                        password: encodeBase64,
                         firstName: formData.firstName,
                         lastName: formData.lastName,
                         groupToAdd: userType === 0 ? 'registered-users' : 'property-agents',
