@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -18,7 +19,16 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
     };
 
-    const logout = () => {
+    const logout = async () => {
+        if (user && user.email) {
+            try {
+                await axios.post('https://clpiyaf3k3yk4qv4a4wjsw2tte0cxwtj.lambda-url.us-east-1.on.aws/', {
+                    email: user.email
+                });
+            } catch (error) {
+                console.error('Error logging out:', error);
+            }
+        }
         setUser(null);
         localStorage.clear();
         sessionStorage.clear();
