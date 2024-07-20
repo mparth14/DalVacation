@@ -167,7 +167,15 @@ const Login = () => {
                         sessionStorage.setItem('role', (response.data.groups[0]));
                         localStorage.setItem('role', (response.data.groups[0]));
                         localStorage.setItem('user', JSON.stringify(response.data.user));
+                        sessionStorage.setItem('email', response.data.user.email);
+                        sessionStorage.setItem('userType', response.data.user.userType);
+                        sessionStorage.setItem('user_id', response.data.user.user_id);
                         login(response.data.user);
+                        
+                        await axios.post('https://u4praapk75b7qqz4dssxytsxke0sxvmb.lambda-url.us-east-1.on.aws/', {
+                            email: formData.email
+                        });
+
                         // Proceed to security question step
                         // Simulate getting a random security question
 

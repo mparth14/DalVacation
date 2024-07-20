@@ -32,6 +32,7 @@ function ResponsiveAppBar() {
   const handleLoginClick = () => {
     if (user) {
       logout();
+      navigate('/');
     } else {
       navigate('/login');
     }
@@ -53,6 +54,16 @@ function ResponsiveAppBar() {
   const handleSignupClick = () => {
     navigate('/signup');
   };
+
+  const handleDashboardClick = () => {
+    navigate('/dashboard');
+  };
+
+  const handleStatisticsClick = () => {
+    navigate('/dashboard-page');
+  };
+
+  const role = localStorage.getItem('role');
 
   return (
     <AppBar position="static" color="transparent" elevation={0}>
@@ -84,6 +95,14 @@ function ResponsiveAppBar() {
           DalVacation
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
+        <Button color="inherit" onClick={handleDashboardClick}>
+          Dashboard
+        </Button>
+        {role === 'property-agents' && (
+          <Button color="inherit" onClick={handleStatisticsClick}>
+            Statistics
+          </Button>
+        )}
         {user ? (
           <>
             <Button
@@ -114,7 +133,7 @@ function ResponsiveAppBar() {
                 horizontal: 'right',
               }}
             >
-              <MenuItem onClick={logout}>
+              <MenuItem onClick={handleLoginClick}>
                 <LogoutIcon sx={{ mr: 1 }} />
                 Logout
               </MenuItem>

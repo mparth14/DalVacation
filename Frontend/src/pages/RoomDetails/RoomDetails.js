@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useRooms } from '../../contexts/RoomContext';
 import { useAuth } from '../../contexts/AuthContext';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
@@ -9,9 +9,12 @@ import "./RoomDetails.css";
 import { toast } from 'react-toastify';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { Button } from '@mui/material';
+import FeedbackDisplay from '../Feedback/FeedbackDisplay'; 
 
 const RoomDetails = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const { rooms } = useRooms();
     const { user } = useAuth();
     const room = rooms.find(room => room.room_id === id);
@@ -25,7 +28,6 @@ const RoomDetails = () => {
     const handleBooking = async (event) => {
         event.preventDefault();
 
-        // Convert dates to the desired format
         const formatDate = (date) => {
             const d = new Date(date);
             let month = '' + (d.getMonth() + 1);
@@ -45,32 +47,29 @@ const RoomDetails = () => {
             guests,
             check_in_date: formatDate(startDate),
             check_out_date: formatDate(endDate),
-
         };
-
-        console.log("booking-data", bookingData);
 
         try {
             const response = await axios.post('https://yun7hvv6d4.execute-api.us-east-1.amazonaws.com/RoomDetails/rooms/room/book', bookingData);
-            console.log('Booking successful:', response.data);
             toast.success('Booking successful!');
         } catch (error) {
-            console.error('Error booking room:', error);
             toast.error('Error booking room');
-            // Handle error (e.g., show error message)
         }
+    };
+
+    const handleFeedbackClick = () => {
+        navigate('/feedback', { state: { roomId: room.room_id, isRecreation: room.isRecreation } });
     };
 
     if (!room) return <p>Room not found</p>;
 
-    // Ensure facilities is always an array
     const facilities = Array.isArray(room.facilities) ? room.facilities : room.facilities.split(',').map(facility => facility.trim());
 
     return (
         <div className='room-details-container'>
             <h1>{room.room_name}</h1>
 
-            <Carousel autoPlay={true} infiniteLoop={true} showThumbs={false} >
+            <Carousel autoPlay={true} infiniteLoop={true} showThumbs={false}>
                 {room.images && room.images.length > 0 ? (
                     room.images.map((image, index) => (
                         <img key={index} className='room-carousel-image' src={image} />
@@ -85,7 +84,7 @@ const RoomDetails = () => {
                     <div className='room-detail-left'>
                         <div>
                             <h3>{room.room_type} Room:</h3>
-                            <p> {room.no_of_beds} Beds, {room.no_of_baths} Baths, {room.max_guests} Guests </p>
+                            <p>{room.no_of_beds} Beds, {room.no_of_baths} Baths, {room.max_guests} Guests</p>
                         </div>
                         <h1>${room.price}</h1>
                     </div>
@@ -109,7 +108,6 @@ const RoomDetails = () => {
                                 dateFormat="yyyy-MM-dd"
                             />
                         </div>
-
                         <div className='room-book-inputdate'>
                             <label>End Date</label>
                             <DatePicker
@@ -140,8 +138,13 @@ const RoomDetails = () => {
                     />
                     <button onClick={(event) => handleBooking(event)}>BOOK</button>
                 </div>
-            </div >
-        </div >
+            </div>
+            {/* Feedback Display Section */}
+            <FeedbackDisplay roomId={room.room_id} />
+            <Button variant="contained" color="primary" onClick={handleFeedbackClick} style={{ marginTop: '20px' }}>
+                Leave Feedback
+            </Button>
+        </div>
     );
 };
 

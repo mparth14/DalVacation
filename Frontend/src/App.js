@@ -2,9 +2,9 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { RoomProvider } from './contexts/RoomContext';
-import './styles.css'; // Import global styles
+import './styles.css'; 
 import CssBaseline from '@mui/material/CssBaseline';
-import theme from './theme'; // Import your custom theme
+import theme from './theme'; 
 import { ThemeProvider } from '@mui/material/styles';
 import Chatbot from './components/Chatbot/Chatbot';
 import { ToastContainer } from 'react-toastify';
@@ -20,6 +20,7 @@ import FeedbackForm from './pages/Feedback/FeedbackForm';
 import FeedbackDisplay from './pages/Feedback/FeedbackDisplay';
 import Chat from './components/PubSub/Chat';
 import RequestList from './components/PubSub/RequestList';
+import DashboardPage from './pages/DashboardPage/DashboardPage';
 
 const App = () => {
   return (
@@ -60,6 +61,7 @@ const Main = () => {
     } else {
       // Redirect to login if not logged in
       return <Navigate to="/login" />;
+      //return <Component {...rest} />;
     }
   };
 
@@ -73,10 +75,12 @@ const Main = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/room/:id" element={<RoomDetails />} />
         <Route path="/manage-rooms" element={<ProtectedRouteForAgents element={ManageRooms} />} />
-        <Route path="/feedback" element={<ProtectedRouteForUsers element={FeedbackDisplay} />}  />
-        <Route path="/feedback-display" element={<ProtectedRouteForAgents element={FeedbackDisplay} />} />
+        <Route path="/feedback" element={<ProtectedRouteForUsers element={FeedbackForm} />}  />
+        {/* <Route path="/feedback-display" element={<FeedbackDisplay/>} /> */}
         <Route path="/concern-request-list" element={<ProtectedRouteForUsers element={RequestList} />}  />
         <Route path="/chat/:requestId" element={<ProtectedRouteForUsers element={Chat} />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/dashboard-page" element={<ProtectedRouteForAgents element={DashboardPage} />} />
       </Routes >
       <ToastContainer />
       {showNavbar && <Chatbot />}

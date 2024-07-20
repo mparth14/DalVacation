@@ -5,7 +5,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, Box
 } from '@mui/material';
 
-const FeedbackDisplay = () => {
+const FeedbackDisplay = ({ roomId }) => {
   const [feedbackData, setFeedbackData] = useState([]);
 
   useEffect(() => {
@@ -21,53 +21,51 @@ const FeedbackDisplay = () => {
     fetchFeedbackData();
   }, []);
 
+  const roomFeedbacks = feedbackData[roomId]?.feedbacks || [];
+  const averageScore = feedbackData[roomId]?.average_score;
+  const averageMagnitude = feedbackData[roomId]?.average_magnitude;
+  const overallSentiment = feedbackData[roomId]?.overall_sentiment;
+
   return (
     <TableContainer component={Paper}>
       <Box mt={4} p={2}>
-        <Typography variant="h4" gutterBottom align="center">Feedback Summary</Typography>
-        <Table aria-label="feedback table">
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ backgroundColor: '#1976d2', color: '#ffffff' }}>Room ID</TableCell>
-              <TableCell sx={{ backgroundColor: '#1976d2', color: '#ffffff' }}>Feedback Text</TableCell>
-              <TableCell sx={{ backgroundColor: '#1976d2', color: '#ffffff' }}>Rating</TableCell>
-              <TableCell sx={{ backgroundColor: '#1976d2', color: '#ffffff' }}>Average Score</TableCell>
-              <TableCell sx={{ backgroundColor: '#1976d2', color: '#ffffff' }}>Average Magnitude</TableCell>
-              <TableCell sx={{ backgroundColor: '#1976d2', color: '#ffffff' }}>Overall Sentiment</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {Object.keys(feedbackData).map((roomId) => {
-              const room = feedbackData[roomId];
-              return (
-                <React.Fragment key={roomId}>
-                  {room.feedbacks.map((feedback, index) => (
-                    <TableRow key={feedback.feedbackId}>
-                      <TableCell>{index === 0 ? roomId : ''}</TableCell>
-                      <TableCell>{feedback.feedbackText}</TableCell>
-                      <TableCell>{feedback.rating}</TableCell>
-                      {index === 0 && (
-                        <TableCell rowSpan={room.feedbacks.length} sx={{ fontWeight: 'bold', textAlign: 'center' }}>
-                          {room.average_score}
-                        </TableCell>
-                      )}
-                      {index === 0 && (
-                        <TableCell rowSpan={room.feedbacks.length} sx={{ fontWeight: 'bold', textAlign: 'center' }}>
-                          {room.average_magnitude}
-                        </TableCell>
-                      )}
-                      {index === 0 && (
-                        <TableCell rowSpan={room.feedbacks.length} sx={{ fontWeight: 'bold', textAlign: 'center' }}>
-                          {room.overall_sentiment}
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </React.Fragment>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <Typography variant="h5" gutterBottom align="center">Feedback for Room ID: {roomId}</Typography>
+        {roomFeedbacks.length > 0 ? (
+          <Table aria-label="feedback table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Feedback Text</TableCell>
+                <TableCell>Rating</TableCell>
+                <TableCell>Average Score</TableCell>
+                <TableCell>Average Magnitude</TableCell>
+                <TableCell>Overall Sentiment</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {roomFeedbacks.map((feedback, index) => (
+                <TableRow key={feedback.feedbackId}>
+                  <TableCell>{feedback.feedbackText}</TableCell>
+                  <TableCell>{feedback.rating}</TableCell>
+                  {index === 0 && (
+                    <>
+                      <TableCell rowSpan={roomFeedbacks.length} sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                        {averageScore}
+                      </TableCell>
+                      <TableCell rowSpan={roomFeedbacks.length} sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                        {averageMagnitude}
+                      </TableCell>
+                      <TableCell rowSpan={roomFeedbacks.length} sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                        {overallSentiment}
+                      </TableCell>
+                    </>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <Typography align="center" color="textSecondary">No feedback yet.</Typography>
+        )}
       </Box>
     </TableContainer>
   );
