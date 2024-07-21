@@ -21,6 +21,8 @@ import FeedbackDisplay from './pages/Feedback/FeedbackDisplay';
 import Chat from './components/PubSub/Chat';
 import RequestList from './components/PubSub/RequestList';
 import DashboardPage from './pages/DashboardPage/DashboardPage';
+import MyBookings from './pages/MyBookings/MyBookings';
+
 
 const App = () => {
   return (
@@ -81,6 +83,7 @@ const Main = () => {
         <Route path="/chat/:requestId" element={<ProtectedRouteForUsers element={Chat} />} />
         <Route path="/home" element={<Home />} />
         <Route path="/dashboard-page" element={<ProtectedRouteForAgents element={DashboardPage} />} />
+        <Route path="/my-bookings" element={<ProtectedRouteForUsers element={MyBookings} />} />
       </Routes >
       <ToastContainer />
       {showNavbar && <Chatbot />}
