@@ -2,7 +2,7 @@
 FROM node:20.10.0 as build
 
 # Set the working directory in the container
-WORKDIR /serverless-test
+WORKDIR /dalvacationhome
 
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
@@ -22,7 +22,7 @@ FROM nginx:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy the built React app to Nginx's web server directory
-COPY --from=build /serverless-test/build /usr/share/nginx/html
+COPY --from=build /dalvacationhome/build /usr/share/nginx/html
 
 # Expose port 80 for the Nginx server
 EXPOSE 8080
