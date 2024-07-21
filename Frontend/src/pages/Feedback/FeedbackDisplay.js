@@ -29,7 +29,7 @@ const FeedbackDisplay = ({ roomId }) => {
   return (
     <TableContainer component={Paper}>
       <Box mt={4} p={2}>
-        <Typography variant="h5" gutterBottom align="center">Feedback for Room ID: {roomId}</Typography>
+        <Typography variant="h5" gutterBottom align="center">Feedback</Typography>
         {roomFeedbacks.length > 0 ? (
           <Table aria-label="feedback table">
             <TableHead>
