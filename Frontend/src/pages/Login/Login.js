@@ -149,7 +149,7 @@ const Login = () => {
 
                 const encodeBase64 = btoa(formData.password);
 
-                const response = await axios.get('https://2oi0rkpty0.execute-api.us-east-1.amazonaws.com/test1/user-auth', {
+                const response = await axios.get('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/login', {
                     params: {
                         email: formData.email,
                         password: encodeBase64,
@@ -163,10 +163,23 @@ const Login = () => {
                         sessionStorage.setItem('accessToken', response.data.user.accessToken);
                         sessionStorage.setItem('idToken', response.data.user.user_id);
                         sessionStorage.setItem('refreshToken', response.data.user.refreshToken);
+                        sessionStorage.setItem('user', JSON.stringify(response.data.user));
+                        sessionStorage.setItem('role', (response.data.groups[0]));
+                        localStorage.setItem('role', (response.data.groups[0]));
+                        localStorage.setItem('user', JSON.stringify(response.data.user));
+                        sessionStorage.setItem('email', response.data.user.email);
+                        sessionStorage.setItem('userType', response.data.user.userType);
+                        sessionStorage.setItem('user_id', response.data.user.user_id);
                         login(response.data.user);
+                        
+                        await axios.post('https://u4praapk75b7qqz4dssxytsxke0sxvmb.lambda-url.us-east-1.on.aws/', {
+                            email: formData.email
+                        });
+
                         // Proceed to security question step
                         // Simulate getting a random security question
-                        const securityQuestionId = Math.floor(Math.random() * 3) + 1; // Assuming 3 security questions
+
+                        const securityQuestionId = Math.floor(Math.random() * 3) + 1;
                         let securityQuestion = '';
                         switch (securityQuestionId) {
                             case 1:
@@ -275,7 +288,7 @@ const Login = () => {
         } else if (activeStep === 2) {
             // Fetch third factor authentication
             try {
-                const response = await axios.get('https://2oi0rkpty0.execute-api.us-east-1.amazonaws.com/test1/secret-key-verify', {
+                const response = await axios.get('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/secret-key-verify', {
                     params: {
                         email: formData.email,
                         secretKeyVerify: formData.securityKey,
@@ -286,8 +299,12 @@ const Login = () => {
                     // Proceed to next step upon successful verification
                     alert('Login successful!');
                     setApiSuccess(true);
-                    navigate('/dashboard');
-                } else {
+                    if (localStorage.getItem('role') == "property-agents") {
+                        navigate('/manage-rooms');
+                    } else if (localStorage.getItem('role') == "registered-users") {
+                        navigate('/dashboard');
+                    }}
+                    else {
                     // Handle third factor authentication failure
                     alert('Failed to verify third factor authentication.');
                 }

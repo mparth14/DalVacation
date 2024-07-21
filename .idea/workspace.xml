@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="c0797da3-b5a9-42e4-b0d4-280f9805f77a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/Frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/App.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/components/Navbar/Navbar.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/components/Navbar/Navbar.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/contexts/AuthContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/contexts/AuthContext.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/pages/Dashboard/Dashboard.css" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/pages/Dashboard/Dashboard.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/pages/Login/Login.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/pages/Login/Login.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Frontend/src/pages/Signup/Signup.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/pages/Signup/Signup.js" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 6
+}]]></component>
+  <component name="ProjectId" id="2jTcM2UdYYsjcSHbNf0j6xUHXTw" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "Unnati",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/unnat/OneDrive/Desktop/MACS/SEM 3/SERVERLESS/DevelopmentBranchs/Git pull on 19th july/s24_5410_group21_dalvacationhome"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c0797da3-b5a9-42e4-b0d4-280f9805f77a" name="Changes" comment="" />
+      <created>1721414456026</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1721414456026</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+      </list>
+    </option>
+  </component>
+</project>

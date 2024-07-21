@@ -20,23 +20,44 @@ export const RoomProvider = ({ children }) => {
 
             setRooms(JSON.parse(response.data.body));
             console.log("response", response);
-
-
         } catch (error) {
             console.error('Error fetching rooms:', error);
         }
     };
 
-    const addRoom = (room) => {
-        setRooms([...rooms, room]);
+    const addRoom = async (room) => {
+        try {
+            const response = await axios.post('https://yun7hvv6d4.execute-api.us-east-1.amazonaws.com/RoomDetails/rooms', room);
+            if (response.status === 200) {
+                setRooms([...rooms, room]);
+            }
+        } catch (error) {
+            console.error('Error adding room:', error);
+        }    
     };
 
-    const updateRoom = (updatedRoom) => {
-        setRooms(rooms.map(room => room.id === updatedRoom.id ? updatedRoom : room));
+    const updateRoom = async (updatedRoom) => {
+        try {
+            const response = await axios.put('https://yun7hvv6d4.execute-api.us-east-1.amazonaws.com/RoomDetails/rooms/room', updatedRoom);
+            if (response.status === 200) {
+                setRooms(rooms.map(room => room.id === updatedRoom.id ? updatedRoom : room));
+            }
+        } catch (error) {
+            console.error('Error updating room:', error);
+        }
     };
 
-    const deleteRoom = (roomId) => {
-        setRooms(rooms.filter(room => room.id !== roomId));
+    const deleteRoom = async (roomId) => {
+        try {
+            const response = await axios.delete(`https://yun7hvv6d4.execute-api.us-east-1.amazonaws.com/RoomDetails/rooms/room`, {
+                data: { room_id: roomId }
+            });
+            if (response.status === 200) {
+                setRooms(rooms.filter(room => room.room_id !== roomId));
+            }
+        } catch (error) {
+            console.error('Error deleting room:', error);
+        }
     };
 
     return (

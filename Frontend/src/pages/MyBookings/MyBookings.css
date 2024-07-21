@@ -1,0 +1,33 @@
+.container-bookings {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-family: 'Arial', sans-serif;
+  color: #333;
+}
+
+.bookings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.no-bookings {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error-message {
+  background-color: #fdd;
+  border: 1px solid #f00;
+  padding: 10px;
+  border-radius: 5px;
+  color: #f00;
+  text-align: center;
+}
