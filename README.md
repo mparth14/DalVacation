@@ -7,35 +7,35 @@
 
 ### Development Steps
 
-- [] [Clone the repository to your local system]
-- [] [navigate to the FrontEnd folder]
+- [ ] Clone the repository to your local system
+- [ ] navigate to the FrontEnd folder
 ```
 cd FrontEnd
 ```
-- [] [run the following command to install the necessary dependencies]
+- [ ] run the following command to install the necessary dependencies
 ```
 npm install
 ```
-- [] [run the following command to start the front end server locally]
+- [ ] run the following command to start the front end server locally
 ```
 npm start
 ```
 
 ### Deployment Steps
 
-- [] [run the following command to build a docker image locally]
+- [ ] run the following command to build a docker image locally
 ```
 docker build --platform linux/amd64 -t dalvacationhome-image .
 ```
-- [] [run the following command to create a tag for the docker image]
+- [ ] [run the following command to create a tag for the docker image]
 ```
 docker tag dalvacationhome-image us-east1-docker.pkg.dev/serverless-430022/serverless/dalvacationhome:latest
 ```
-- [] [push the docker image to the Artifact Registry in S24_5410_Group21_DALVacationHome]
+- [ ] push the docker image to the Artifact Registry in S24_5410_Group21_DALVacationHome
 ```
 docker push us-east1-docker.pkg.dev/serverless-430022/serverless/dalvacationhome
 ```
-- [] [create a cloud run deployment using the image added in Artifact Registry]
+- [ ] create a cloud run deployment using the image added in Artifact Registry
 
 
 ## Getting started
