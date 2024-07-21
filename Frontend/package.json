@@ -34,7 +34,11 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "docker:clean": "/Applications/Docker.app/Contents/Resources/bin/docker rm -vf $(/Applications/Docker.app/Contents/Resources/bin/docker ps -aq) && /Applications/Docker.app/Contents/Resources/bin/docker rmi -f $(/Applications/Docker.app/Contents/Resources/bin/docker images -aq)",
+    "docker:build": "/Applications/Docker.app/Contents/Resources/bin/docker buildx build --platform linux/amd64 -t gcr.io/serverless/test .",
+    "docker:run":   "/Applications/Docker.app/Contents/Resources/bin/docker run --name serverless-test -p 8080:8080 -d gcr.io/serverless/test",
+    "docker:push": "/Applications/Docker.app/Contents/Resources/bin/docker push gcr.io/serverless/test"
   },
   "eslintConfig": {
     "extends": [
