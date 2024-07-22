@@ -215,6 +215,10 @@ const Signup = () => {
                 try {
                     const encodeBase64 = btoa(formData.password);
 
+                    console.log("password"+encodeBase64);
+                    console.log("email"+formData.email);
+                    console.log("firstName"+formData.firstName);
+                    console.log("lastName"+formData.lastName);
                     const response = await axios.post('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/sign-up', {
                         email: formData.email,
                         password: encodeBase64,
@@ -222,27 +226,32 @@ const Signup = () => {
                         lastName: formData.lastName,
                         groupToAdd: userType === 0 ? 'registered-users' : 'property-agents',
                     });
-                    console.log('Sign up successful: Unnati', response.data.statusCode+"   "+response.data.body.message);
+                    console.log('Sign up successful: Unnati', response.statusCode+"   "+response.data.message);
                     let errorMessage = 'An error occurred while signing up the user.';
-                    if(response.data.statusCode===200){
+                    if (response.status === 200) {
                       setActiveStep((prevActiveStep) => prevActiveStep + 1);
                       setApiSuccess(true);
                       setErrors({ apiError: '' });
-                    }else if(response.data.statusCode===400){
-                          if(response.data.body.message=== 'An account with this email already exists.'){
+                    }else if(response.statusCode===400){
+                       if(response.data.message=== 'An account with this email already exists.'){
                               errorMessage = 'An account with this email already exists. Please use a different email address.';
 
-                          }else {
-                              errorMessage = 'Invalid input provided. Please check your input fields.';}
-                              setErrors({ apiError: errorMessage });
-                              console.log(errorMessage+"    unnati")
+                       }else {
+                          errorMessage = 'Invalid input provided. Please check your input fields.';
+                       }
+                       setErrors({ apiError: errorMessage });
+                       console.log(errorMessage+"    unnati")
                     }
-                    else if (response.data.statusCode===500){
-                      errorMessage= response.data.body.message || 'Internal Server error';
+                    else if (response.statusCode===500){
+                      errorMessage= response.data.message || 'Internal Server error';
                       setErrors({ apiError: errorMessage });
+                    }else {
+                        let errorMessage = 'Signup failed. Please try again.';
+                        if (response.data.message) {
+                            errorMessage = response.data.message;
+                        }
+                        setErrors({ apiError: errorMessage });
                     }
-
-
                   } catch (error) {
                     console.error('Error during sign up:', error.response ? error.response.data : error.message);
                     let errorMessage = 'An error occurred while signing up the user.';
@@ -257,16 +266,17 @@ const Signup = () => {
                       verificationCode: formData.verificationCode.toString().replace(/,/g, ''),
                     });
 
-                    console.log("Verification::"+response.data.body);
+                    console.log("Verification::"+response.data);
+                                        console.log("Verification::"+response.data.statusCode);
+
                     console.log("Verification::"+formData.verificationCode.toString().replace(/,/g, ''));
                     // Handle response from verification code API
-                    if (response.data.statusCode === 200) {
-                      // Move to the next step after successful verification
+                    if (response.status === 200) {
                       setActiveStep((prevActiveStep) => prevActiveStep + 1);
                       setApiSuccess(true);
-                      setErrors({ apiError: '' }); // Clear any previous API error messages
-                    } else {
-                      let errorMessage = response.data.body.message || 'Verification failed.';
+                      setErrors({ apiError: '' });
+                    }else {
+                      let errorMessage = response.data.message || 'Verification failed.';
                       setErrors({ apiError: errorMessage });
                     }
                   } catch (error) {
@@ -275,14 +285,7 @@ const Signup = () => {
                     setErrors({ apiError: errorMessage });
                   }
             } else if (activeStep === 2) {
-                    // const securityQuestionsDetails = {
-                    //     favColor: formData.favColor,
-                    //     favSports: formData.favSports,
-                    //     cityBorn: formData.cityBorn,
-                    // };
-                    // setSecurityQuestions(securityQuestionsDetails);
-                    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-
+                setActiveStep((prevActiveStep) => prevActiveStep + 1);
             } else if (activeStep === 3) {
                 try {
                     const response = await axios.post('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/second-factor-auth', {
@@ -297,12 +300,12 @@ const Signup = () => {
                     });
 
                     console.log(response.data);
-                    if (response.data.statusCode === 200) {
+                    if (response.status === 200) {
                       setActiveStep((prevActiveStep) => prevActiveStep + 1);
                       setApiSuccess(true);
                       setErrors({ apiError: '' });
                     } else {
-                      let errorMessage = response.data.body.message || 'Failed to store security details.';
+                      let errorMessage = response.data.message || 'Failed to store security details.';
                       setErrors({ apiError: errorMessage });
                     }
                   } catch (error) {
