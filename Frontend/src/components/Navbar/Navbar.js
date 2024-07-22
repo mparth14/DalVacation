@@ -6,6 +6,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ServiceIcon from '@mui/icons-material/Assignment';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
+import BookIcon from '@mui/icons-material/Book'; // Import a suitable icon for "My Bookings"
 
 function ResponsiveAppBar() {
   const { user, logout } = useAuth();
@@ -32,6 +33,7 @@ function ResponsiveAppBar() {
   const handleLoginClick = () => {
     if (user) {
       logout();
+      navigate('/');
     } else {
       navigate('/login');
     }
@@ -53,6 +55,20 @@ function ResponsiveAppBar() {
   const handleSignupClick = () => {
     navigate('/signup');
   };
+
+  const handleDashboardClick = () => {
+    navigate('/dashboard');
+  };
+
+  const handleStatisticsClick = () => {
+    navigate('/dashboard-page');
+  };
+
+  const handleMyBookingsClick = () => {
+    navigate('/my-bookings');
+  };
+
+  const role = localStorage.getItem('role');
 
   return (
     <AppBar position="static" color="transparent" elevation={0}>
@@ -84,6 +100,23 @@ function ResponsiveAppBar() {
           DalVacation
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
+        <Button color="inherit" onClick={handleDashboardClick}>
+          Dashboard
+        </Button>
+        {role === 'property-agents' && (
+          <Button color="inherit" onClick={handleStatisticsClick}>
+            Statistics
+          </Button>
+        )}
+        {user && role === 'registered-users' && (
+          <Button
+            color="inherit"
+            onClick={handleMyBookingsClick}
+            startIcon={<BookIcon />}
+          >
+            My Bookings
+          </Button>
+        )}
         {user ? (
           <>
             <Button
@@ -114,7 +147,7 @@ function ResponsiveAppBar() {
                 horizontal: 'right',
               }}
             >
-              <MenuItem onClick={logout}>
+              <MenuItem onClick={handleLoginClick}>
                 <LogoutIcon sx={{ mr: 1 }} />
                 Logout
               </MenuItem>

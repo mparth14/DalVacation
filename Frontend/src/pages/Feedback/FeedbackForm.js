@@ -1,18 +1,35 @@
 // src/FeedbackForm.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TextField, Button, Grid, Typography, MenuItem, Container, Alert, Box } from '@mui/material';
+import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const FeedbackForm = () => {
+  const location = useLocation();
+  const { roomId, isRecreation } = location.state || {};
+  const { user } = useAuth();
+
   const [formData, setFormData] = useState({
-    roomType: '',
-    roomId: '',
-    recreationRoomId: '',
-    customerId: '',
+    roomType: isRecreation ? 'recreation' : 'room',
+    roomId: isRecreation ? '' : roomId,
+    recreationRoomId: isRecreation ? roomId : '',
+    customerId: user ? user.email : '',
     feedbackText: '',
     rating: '',
   });
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    if (roomId) {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        roomId: isRecreation ? '' : roomId,
+        recreationRoomId: isRecreation ? roomId : '',
+        customerId: user ? user.email : '',
+      }));
+    }
+  }, [roomId, isRecreation, user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -55,10 +72,10 @@ const FeedbackForm = () => {
         if (response.ok) {
           setSuccessMessage('Feedback submitted successfully');
           setFormData({
-            roomType: '',
-            roomId: '',
-            recreationRoomId: '',
-            customerId: '',
+            roomType: isRecreation ? 'recreation' : 'room',
+            roomId: isRecreation ? '' : roomId,
+            recreationRoomId: isRecreation ? roomId : '',
+            customerId: user ? user.email : '',
             feedbackText: '',
             rating: '',
           });
@@ -90,6 +107,7 @@ const FeedbackForm = () => {
                 onChange={handleChange}
                 error={!!errors.roomType}
                 helperText={errors.roomType}
+                disabled
               >
                 <MenuItem value="room">Room</MenuItem>
                 <MenuItem value="recreation">Recreation Room</MenuItem>
@@ -106,6 +124,7 @@ const FeedbackForm = () => {
                   onChange={handleChange}
                   error={!!errors.roomId}
                   helperText={errors.roomId}
+                  disabled
                 />
               </Grid>
             )}
@@ -120,6 +139,7 @@ const FeedbackForm = () => {
                   onChange={handleChange}
                   error={!!errors.recreationRoomId}
                   helperText={errors.recreationRoomId}
+                  disabled
                 />
               </Grid>
             )}
@@ -133,6 +153,7 @@ const FeedbackForm = () => {
                 onChange={handleChange}
                 error={!!errors.customerId}
                 helperText={errors.customerId}
+                disabled
               />
             </Grid>
             <Grid item xs={12}>
