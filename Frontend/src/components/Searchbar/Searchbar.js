@@ -18,6 +18,7 @@ const Searchbar = ({ startDate, setStartDate, endDate, setEndDate, onSearch }) =
                                 selected={startDate}
                                 onChange={(date) => setStartDate(date)}
                                 placeholderText="Pick a start date .."
+                                dateFormat="yyyy-MM-dd"
                             />
                         </div>
 
@@ -26,6 +27,7 @@ const Searchbar = ({ startDate, setStartDate, endDate, setEndDate, onSearch }) =
                                 selected={endDate}
                                 onChange={(date) => setEndDate(date)}
                                 placeholderText="Pick an end date .."
+                                dateFormat="yyyy-MM-dd"
                             />
                         </div>
                         <button className="btn search-button" onClick={onSearch}>

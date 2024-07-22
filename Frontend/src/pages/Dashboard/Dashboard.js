@@ -24,14 +24,55 @@ const Dashboard = () => {
 
     const handleSearch = () => {
         if (!Array.isArray(rooms)) return; // Guard against undefined or null rooms
+
         const filtered = rooms.filter(room => {
-            const roomStartDate = new Date(room.startDate);
-            const roomEndDate = new Date(room.endDate);
-            const startMatch = startDate ? roomStartDate >= new Date(startDate) : true;
-            const endMatch = endDate ? roomEndDate <= new Date(endDate) : true;
-            return startMatch && endMatch;
+            if (!room.booked_dates || !Array.isArray(room.booked_dates)) return true; // Guard against undefined or null booked_dates
+
+            const startDateObj = startDate ? new Date(startDate) : null;
+            const endDateObj = endDate ? new Date(endDate) : null;
+
+            if (!startDateObj || !endDateObj) return true; // If no startDate or endDate is provided, include the room
+
+            const searchRange = getDatesInRange(startDateObj, endDateObj);
+            const bookedDates = room.booked_dates.map(date => {
+                const parsedDate = new Date(date);
+                if (isNaN(parsedDate.getTime())) {
+                    console.error('Invalid date:', date);
+                    return null;
+                }
+                return parsedDate;
+            }).filter(date => date !== null); // Remove invalid dates
+
+            const isAvailable = searchRange.every(date => {
+                return !bookedDates.some(bookedDate => bookedDate.getTime() === date.getTime());
+            });
+
+            return isAvailable;
         });
+
         setFilteredRooms(filtered);
+    };
+
+    const getDatesInRange = (start, end) => {
+        const date = new Date(start);
+        const dates = [];
+        while (date <= end) {
+            dates.push(new Date(date));
+            date.setDate(date.getDate() + 1);
+        }
+        return dates;
+    };
+
+    const formatDate = (date) => {
+        const d = new Date(date);
+        let month = '' + (d.getMonth() + 1);
+        let day = '' + d.getDate();
+        const year = d.getFullYear();
+
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+
+        return [year, month, day].join('-');
     };
 
     const handleSortChange = (sortOption) => {
