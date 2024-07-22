@@ -1,13 +1,7 @@
-// src/FeedbackForm.js
 import React, { useState, useEffect } from 'react';
 import { TextField, Button, Grid, Typography, MenuItem, Container, Alert, Box } from '@mui/material';
-import { useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 
-const FeedbackForm = () => {
-  const location = useLocation();
-  const { roomId, isRecreation } = location.state || {};
-  const { user } = useAuth();
+const FeedbackForm = ({ roomId, isRecreation, handleClose, user }) => {
 
   const [formData, setFormData] = useState({
     roomType: isRecreation ? 'recreation' : 'room',
@@ -80,6 +74,7 @@ const FeedbackForm = () => {
             rating: '',
           });
           setErrors({});
+          handleClose();
         } else {
           console.error('Failed to submit feedback');
         }
