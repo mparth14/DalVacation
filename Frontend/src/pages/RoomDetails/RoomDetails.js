@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRooms } from '../../contexts/RoomContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,8 +9,10 @@ import "./RoomDetails.css";
 import { toast } from 'react-toastify';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { Button } from '@mui/material';
-import FeedbackDisplay from '../Feedback/FeedbackDisplay'; 
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
+import FeedbackDisplay from '../Feedback/FeedbackDisplay';
+import FeedbackForm from '../Feedback/FeedbackForm';
 
 const RoomDetails = () => {
     const { id } = useParams();
@@ -21,12 +23,38 @@ const RoomDetails = () => {
 
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [guests, setGuests] = useState('');
+    const [feedbackOpen, setFeedbackOpen] = useState(false);
 
     const handleBooking = async (event) => {
         event.preventDefault();
+
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+
+        if (!phone || !guests || !startDate || !endDate) {
+            toast.error('Enter valid booking data.');
+            return;
+        }
+
+        if (new Date(startDate) >= new Date(endDate)) {
+            toast.error('Check-out date must be after check-in date');
+            return;
+        }
+
+        const phonePattern = /^\d{10}$/;
+        if (!phonePattern.test(phone)) {
+            toast.error('Invalid phone number');
+            return;
+        }
+
+        if (parseInt(guests) > room.max_guests) {
+            toast.error(`Number of guests cannot exceed ${room.max_guests}`);
+            return;
+        }
 
         const formatDate = (date) => {
             const d = new Date(date);
@@ -42,7 +70,7 @@ const RoomDetails = () => {
 
         const bookingData = {
             room_id: id,
-            email: user ? user.email : 'sruthii.mec@gmail.com',
+            email: user.email,
             phone,
             guests,
             check_in_date: formatDate(startDate),
@@ -51,14 +79,24 @@ const RoomDetails = () => {
 
         try {
             const response = await axios.post('https://yun7hvv6d4.execute-api.us-east-1.amazonaws.com/RoomDetails/rooms/room/book', bookingData);
-            toast.success('Booking successful!');
+            toast.success('Booking Requested!');
         } catch (error) {
             toast.error('Error booking room');
         }
     };
 
-    const handleFeedbackClick = () => {
-        navigate('/feedback', { state: { roomId: room.room_id, isRecreation: room.isRecreation } });
+    const handleFeedbackClick = (event) => {
+        event.preventDefault();
+
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+        setFeedbackOpen(true);
+    };
+
+    const handleFeedbackClose = () => {
+        setFeedbackOpen(false);
     };
 
     if (!room) return <p>Room not found</p>;
@@ -119,12 +157,6 @@ const RoomDetails = () => {
                         </div>
                     </div>
                     <input
-                        placeholder="email"
-                        type="text"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                    <input
                         placeholder="phone"
                         type="tel"
                         value={phone}
@@ -144,6 +176,23 @@ const RoomDetails = () => {
             <Button variant="contained" color="primary" onClick={handleFeedbackClick} style={{ marginTop: '20px' }}>
                 Leave Feedback
             </Button>
+
+            <Dialog open={feedbackOpen} onClose={handleFeedbackClose} maxWidth="sm" fullWidth>
+                <DialogTitle>
+                    Leave Feedback
+                    <IconButton aria-label="close" onClick={handleFeedbackClose} style={{ position: 'absolute', right: 8, top: 8 }}>
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent>
+                    <FeedbackForm roomId={room.room_id} isRecreation={room.isRecreation} handleClose={handleFeedbackClose} user={user} />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleFeedbackClose} color="primary">
+                        Cancel
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 };
