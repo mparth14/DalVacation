@@ -9,9 +9,9 @@ exports.handler = async (event) => {
       "Access-Control-Allow-Methods": "OPTIONS,POST"
     }
   };
-  
+
   // Extract parameters from the event
-  const { action, email, verificationCode } = event;
+  const { action, email, verificationCode } = JSON.parse(event.body);
 
   // Create an instance of the Cognito Identity Provider client
   const client = new CognitoIdentityProviderClient({ region: 'us-east-1' });
@@ -30,7 +30,7 @@ exports.handler = async (event) => {
 
       return {
         ...response,
-        body: { message: 'Verification code sent successfully' }
+        body: JSON.stringify({ message: 'Verification code sent successfully' })
       };
     } else if (action === 'verifyVerificationCode') {
       // Create a command to confirm the sign-up
@@ -47,13 +47,13 @@ exports.handler = async (event) => {
       // If confirmation is successful, data will contain relevant information
       return {
         ...response,
-        body: { message: 'Email verification successful' }
+        body: JSON.stringify({ message: 'Email verification successful' })
       };
     } else {
       return {
         ...response,
         statusCode: 400,
-        body: { message: 'Invalid action specified' }
+        body: JSON.stringify({ message: 'Invalid action specified' })
       };
     }
   } catch (error) {
@@ -61,7 +61,7 @@ exports.handler = async (event) => {
     return {
       ...response,
       statusCode: 500,
-      body: { message: 'Error processing action', error: error.message }
+      body: JSON.stringify({ message: 'Error processing action', error: error.message })
     };
   }
 };

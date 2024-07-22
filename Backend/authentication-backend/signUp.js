@@ -1,54 +1,53 @@
-          const { CognitoIdentityProviderClient,SignUpCommand, AdminAddUserToGroupCommand } = require('@aws-sdk/client-cognito-identity-provider');
-          const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
+const { CognitoIdentityProviderClient, SignUpCommand, AdminAddUserToGroupCommand } = require('@aws-sdk/client-cognito-identity-provider');
+const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
 const { CreateTopicCommand, SubscribeCommand, SNSClient } = require('@aws-sdk/client-sns');
 
 const snsClient = new SNSClient({ region: 'us-east-1' });
 const cognitoClient = new CognitoIdentityProviderClient({ region: 'us-east-1' });
 const ddbClient = new DynamoDBClient({ region: 'us-east-1' });
 
-          const poolData = {
-            UserPoolId: "us-east-1_D8LhOZMJq",
-            ClientId: "7obkafbfl095gprlo6gli6je55",
-          };
+const poolData = {
+  UserPoolId: "us-east-1_D8LhOZMJq",
+  ClientId: "7obkafbfl095gprlo6gli6je55",
+};
 
-          exports.handler = async (event) => {
+exports.handler = async (event) => {
+  const response = {
+    statusCode: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "OPTIONS,POST"
+    }
+  };
+  const { password, email, firstName, lastName, groupToAdd } = JSON.parse(event.body); // used when testing from API Gateway
 
-            const response = {
-              statusCode: 200,
-              headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Methods": "OPTIONS,POST"
-              }
-            };
 
-            const { password, email, firstName, lastName, groupToAdd } = event; // used when testing from API Gateway
+  // Validate input
+  if (!password || !email || !firstName || !lastName) {
+    return {
+      ...response,
+      statusCode: 400,
+      body: JSON.stringify({ message: 'Password, email, first name, and last name are required' }),
+    };
+  }
 
-            // Validate input
-            if (!password || !email || !firstName || !lastName) {
-              return {
-                ...response,
-                statusCode: 400,
-                body: { message: 'Password, email, first name, and last name are required' },
-              };
-            }
+  // Prepare attributes
+  const attributeList = [
+    { Name: 'email', Value: email },
+    { Name: 'given_name', Value: firstName },
+    { Name: 'family_name', Value: lastName },
+  ];
 
-            // Prepare attributes
-            const attributeList = [
-              { Name: 'email', Value: email },
-              { Name: 'given_name', Value: firstName },
-              { Name: 'family_name', Value: lastName },
-            ];
+  // Prepare sign-up parameters
+  const signUpParams = {
+    ClientId: poolData.ClientId,
+    Password: password,
+    Username: email,
+    UserAttributes: attributeList,
+  };
 
-            // Prepare sign-up parameters
-            const signUpParams = {
-              ClientId: poolData.ClientId,
-              Password: password,
-              Username: email,
-              UserAttributes: attributeList,
-            };
-
-try{
+  try {
     const signUpData = await cognitoClient.send(new SignUpCommand(signUpParams));
     console.log('Sign up successful:', signUpData);
 
@@ -71,7 +70,7 @@ try{
       Name: topicName,
     };
 
-     // Generate a unique user_id
+    // Generate a unique user_id
     const userId = signUpData.UserSub; // Using Cognito UserSub as user_id
     console.log('Creating SNS topic with name:', topicName);
 
@@ -110,7 +109,7 @@ try{
     return {
       ...response,
       statusCode: 200,
-      body: { message: 'User signed up successfully', topicArn: createdArn },
+      body: JSON.stringify({ message: 'User signed up successfully', topicArn: createdArn }),
     };
   } catch (err) {
     console.error('Error signing up or adding user to group:', err);
@@ -134,7 +133,7 @@ try{
     return {
       ...response,
       statusCode: 500,
-      body: { message: errorMessage },
+      body: JSON.stringify({ message: errorMessage }),
     };
   }
 };

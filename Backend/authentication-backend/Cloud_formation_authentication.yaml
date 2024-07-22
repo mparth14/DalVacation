@@ -543,14 +543,14 @@ Resources:
       Role: !Ref RoleARN
       Code:
         ZipFile: |
-          const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+         const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
           const { DynamoDBDocumentClient, UpdateCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
           const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
-
+          
           const client = new DynamoDBClient({});
           const ddbDocClient = DynamoDBDocumentClient.from(client);
           const snsClient = new SNSClient({});
-
+          
           // Caesar Cipher encryption function
           const caesarCipherEncrypt = (text, shift) => {
             return text.split('').map(char => {
@@ -564,7 +564,7 @@ Resources:
               return char;
             }).join('');
           };
-
+          
           exports.handler = async (event) => {
             const response = {
               statusCode: 200,
@@ -574,13 +574,14 @@ Resources:
                 "Access-Control-Allow-Methods": "OPTIONS,POST"
               }
             };
-
-            const action = event.action;
-
+          
+            const eventData = JSON.parse(event.body);
+            const action = eventData.action;
+          
             if (action === "add") {
-              console.log(event.body);
-              const { email, favoriteColor, cityBorn, favoriteSports, secretKey } = event.body;
-
+              console.log(eventData.body);
+              const { email, favoriteColor, cityBorn, favoriteSports, secretKey } = eventData.body;
+          
               // Validate input
               if (!email || !favoriteColor || !cityBorn || !favoriteSports || !secretKey) {
                 return {
@@ -589,15 +590,15 @@ Resources:
                   body: JSON.stringify({ message: 'Email, favorite color, city born, favorite sports, and secret key are required' }),
                 };
               }
-
+          
               // Caesar cipher shift value
               const shift = 3; // You can change this value as needed
               const encryptedKey = caesarCipherEncrypt(secretKey, shift);
-
+          
               // Construct the update expression
               let updateExpression = 'SET';
               const expressionAttributeValues = {};
-
+          
               if (favoriteColor) {
                 updateExpression += ' favoriteColor = :favoriteColor,';
                 expressionAttributeValues[':favoriteColor'] = favoriteColor;
@@ -613,10 +614,10 @@ Resources:
               updateExpression += ' secretKey = :secretKey, shiftValue = :shiftValue,';
               expressionAttributeValues[':secretKey'] = encryptedKey;
               expressionAttributeValues[':shiftValue'] = shift;
-
+          
               // Remove trailing comma
               updateExpression = updateExpression.slice(0, -1);
-
+          
               const params = {
                 TableName: 'User',
                 Key: { email },
@@ -624,13 +625,13 @@ Resources:
                 ExpressionAttributeValues: expressionAttributeValues,
                 ReturnValues: "UPDATED_NEW"
               };
-
+          
               // Fetch encrypted secret key and encryption shift from DynamoDB
               const getParams = {
                 TableName: 'User',
                 Key: { email },
               };
-
+          
               try {
                 const result = await ddbDocClient.send(new UpdateCommand(params));
                 const data = await ddbDocClient.send(new GetCommand(getParams));
@@ -641,16 +642,16 @@ Resources:
                     body: JSON.stringify({ message: 'User not found' }),
                   };
                 }
-
+          
                 const { topicArn, firstName} = data.Item;
-
+          
                 // Send registration success email via SNS
                 const publishParams = {
                   TopicArn: topicArn,
                   Message: `Welcome to Dal-Vacation-Home, ${firstName}. To get started, log in with your credentials and start exploring our services.`,
                   Subject: 'User Registration',
                 };
-
+          
                 try {
                   await snsClient.send(new PublishCommand(publishParams));
                 } catch (snsError) {
@@ -663,7 +664,7 @@ Resources:
                   //   body: { message: 'Error sending registration success email' }
                   // };
                 }
-
+          
                 return {
                   ...response,
                   statusCode: 200,
@@ -678,8 +679,8 @@ Resources:
                 };
               }
             } else if (action === "fetch") {
-              const { email, columns } = event.body;
-
+              const { email, columns } = eventData.body;
+          
               // Validate input
               if (!email || !columns || !Array.isArray(columns) || columns.length === 0) {
                 return {
@@ -688,12 +689,12 @@ Resources:
                   body: JSON.stringify({ message: 'Email and non-empty array of columns are required' }),
                 };
               }
-
+          
               const params = {
                 TableName: 'User',
                 Key: { email }
               };
-
+          
               try {
                 const data = await ddbDocClient.send(new GetCommand(params));
                 if (!data.Item) {
@@ -703,14 +704,14 @@ Resources:
                     body: JSON.stringify({ message: 'User not found' })
                   };
                 }
-
+          
                 const result = {};
                 columns.forEach(column => {
                   if (data.Item[column]) {
                     result[column] = data.Item[column];
                   }
                 });
-
+          
                 return {
                   ...response,
                   statusCode: 200,
@@ -732,6 +733,7 @@ Resources:
               };
             }
           };
+
       Runtime: 'nodejs20.x'
       Timeout: 30
       Environment:
@@ -821,7 +823,7 @@ Resources:
       Code:
         ZipFile: |
           const { CognitoIdentityProviderClient, ConfirmSignUpCommand, ResendConfirmationCodeCommand } = require('@aws-sdk/client-cognito-identity-provider');
-
+          
           exports.handler = async (event) => {
             const response = {
               statusCode: 200,
@@ -831,25 +833,25 @@ Resources:
                 "Access-Control-Allow-Methods": "OPTIONS,POST"
               }
             };
-
+          
             // Extract parameters from the event
-            const { action, email, verificationCode } = event;
-
+            const { action, email, verificationCode } = JSON.parse(event.body);
+          
             // Create an instance of the Cognito Identity Provider client
             const client = new CognitoIdentityProviderClient({ region: 'us-east-1' });
-
+          
             try {
               if (action === 'sendVerificationCode') {
                 // Create a command to resend confirmation code
                 const resendCommand = new ResendConfirmationCodeCommand({
-                  ClientId: process.env.COGNITO_CLIENT_ID,
+                  ClientId: '7obkafbfl095gprlo6gli6je55',
                   Username: email,
                 });
-
+          
                 // Send the resend command to Cognito
                 const data = await client.send(resendCommand);
                 console.log('Resend confirmation code response:', data);
-
+          
                 return {
                   ...response,
                   body: JSON.stringify({ message: 'Verification code sent successfully' })
@@ -857,15 +859,15 @@ Resources:
               } else if (action === 'verifyVerificationCode') {
                 // Create a command to confirm the sign-up
                 const confirmCommand = new ConfirmSignUpCommand({
-                  ClientId: process.env.COGNITO_CLIENT_ID,
+                  ClientId: '7obkafbfl095gprlo6gli6je55',
                   Username: email,
                   ConfirmationCode: verificationCode
                 });
-
+          
                 // Send the confirmation command to Cognito
                 const data = await client.send(confirmCommand);
                 console.log('Confirmation response:', data);
-
+          
                 // If confirmation is successful, data will contain relevant information
                 return {
                   ...response,
@@ -978,16 +980,16 @@ Resources:
           const { CognitoIdentityProviderClient, SignUpCommand, AdminAddUserToGroupCommand } = require('@aws-sdk/client-cognito-identity-provider');
           const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
           const { CreateTopicCommand, SubscribeCommand, SNSClient } = require('@aws-sdk/client-sns');
-
+          
           const snsClient = new SNSClient({ region: 'us-east-1' });
           const cognitoClient = new CognitoIdentityProviderClient({ region: 'us-east-1' });
           const ddbClient = new DynamoDBClient({ region: 'us-east-1' });
-
+          
           const poolData = {
             UserPoolId: "us-east-1_D8LhOZMJq",
             ClientId: "7obkafbfl095gprlo6gli6je55",
           };
-
+          
           exports.handler = async (event) => {
             const response = {
               statusCode: 200,
@@ -997,9 +999,9 @@ Resources:
                 "Access-Control-Allow-Methods": "OPTIONS,POST"
               }
             };
-
-            const { password, email, firstName, lastName, groupToAdd } = event; // used when testing from API Gateway
-
+            const { password, email, firstName, lastName, groupToAdd } = JSON.parse(event.body); // used when testing from API Gateway
+          
+          
             // Validate input
             if (!password || !email || !firstName || !lastName) {
               return {
@@ -1008,14 +1010,14 @@ Resources:
                 body: JSON.stringify({ message: 'Password, email, first name, and last name are required' }),
               };
             }
-
+          
             // Prepare attributes
             const attributeList = [
               { Name: 'email', Value: email },
               { Name: 'given_name', Value: firstName },
               { Name: 'family_name', Value: lastName },
             ];
-
+          
             // Prepare sign-up parameters
             const signUpParams = {
               ClientId: poolData.ClientId,
@@ -1023,48 +1025,48 @@ Resources:
               Username: email,
               UserAttributes: attributeList,
             };
-
+          
             try {
               const signUpData = await cognitoClient.send(new SignUpCommand(signUpParams));
               console.log('Sign up successful:', signUpData);
-
+          
               // If user signed up successfully, assign them to a group
               const addUserToGroupParams = {
                 GroupName: groupToAdd,
                 Username: email,
                 UserPoolId: poolData.UserPoolId,
               };
-
+          
               await cognitoClient.send(new AdminAddUserToGroupCommand(addUserToGroupParams));
               console.log('User added to group:', groupToAdd);
-
+          
               // Extract part of email before @ for topic name
               const userName = email.substring(0, email.indexOf('@'));
               const topicName = `topic-${userName}`;
-
+          
               // Create an SNS topic with the modified topic name
               const createTopicParams = {
                 Name: topicName,
               };
-
+          
               // Generate a unique user_id
               const userId = signUpData.UserSub; // Using Cognito UserSub as user_id
               console.log('Creating SNS topic with name:', topicName);
-
+          
               const createTopicResponse = await snsClient.send(new CreateTopicCommand(createTopicParams));
               const createdArn = createTopicResponse.TopicArn;
               console.log('SNS topic created:', createdArn);
-
+          
               // Subscribe the user's email to the SNS topic
               const subscribeParams = {
                 Protocol: 'email',
                 Endpoint: email,
                 TopicArn: createdArn,
               };
-
+          
               await snsClient.send(new SubscribeCommand(subscribeParams));
               console.log(`Subscribed ${email} to topic:`, createdArn);
-
+          
               // Store the user in DynamoDB
               const ddbParams = {
                 TableName: 'User',
@@ -1078,10 +1080,10 @@ Resources:
                   'userType': {S: groupToAdd},
                 }
               };
-
+          
               await ddbClient.send(new PutItemCommand(ddbParams));
               console.log('User stored in DynamoDB with topic ARN:', createdArn);
-
+          
               // Return success response
               return {
                 ...response,
@@ -1105,7 +1107,7 @@ Resources:
               } else if (err.name === 'ResourceNotFoundException') {
                 errorMessage = 'The requested resource was not found.';
               }
-
+          
               // Return error response
               return {
                 ...response,
