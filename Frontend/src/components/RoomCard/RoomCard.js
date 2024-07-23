@@ -13,19 +13,17 @@ const RoomCard = ({ room }) => {
 
     return (
         <div className="room-pick-card" onClick={handleClick}>
-            <div>
-                <Carousel autoPlay={true} infiniteLoop={true} showThumbs={false} >
+            <Carousel autoPlay={true} infiniteLoop={true} showThumbs={false} >
 
-                    {room.images && room.images.length > 0 ? (
-                        room.images.map((image, index) => (
-                            <img key={index} className='room-image' src={image} />
-                        ))
-                    ) : (
-                        <img className='room-image' src="https://t3.ftcdn.net/jpg/02/48/42/64/360_F_248426448_NVKLywWqArG2ADUxDq6QprtIzsF82dMF.jpg" alt="Placeholder Image" />
-                    )}
+                {room.images && room.images.length > 0 ? (
+                    room.images.map((image, index) => (
+                        <img key={index} className='room-image' src={image} />
+                    ))
+                ) : (
+                    <img className='room-image' src="https://t3.ftcdn.net/jpg/02/48/42/64/360_F_248426448_NVKLywWqArG2ADUxDq6QprtIzsF82dMF.jpg" alt="Placeholder Image" />
+                )}
 
-                </Carousel>
-            </div>
+            </Carousel>
 
             <span className="room-desc"> {room.no_of_beds} Beds , {room.no_of_baths} Baths </span>
             <div className="room-details">

@@ -1,0 +1,37 @@
+steps:
+  # Step 1: Build the Docker image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "--platform"
+      - "linux/amd64"
+      - "-t"
+      - "us-central1-docker.pkg.dev/serverless-430022/dalvacationhome/frontend-image:latest"
+      - "./Frontend" # Setting build context to the FrontEnd folder
+
+  # Step 2: Push the Docker image to Google Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "us-central1-docker.pkg.dev/serverless-430022/dalvacationhome/frontend-image:latest"
+
+  # Step 3: Deploy the Docker image to Google Cloud Run
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "gcloud"
+    args:
+      - "run"
+      - "deploy"
+      - "dal-vacation-home"
+      - "--image"
+      - "us-central1-docker.pkg.dev/serverless-430022/dalvacationhome/frontend-image:latest"
+      - "--platform"
+      - "managed"
+      - "--region"
+      - "us-central1"
+      - "--allow-unauthenticated"
+
+# Specify the logging options
+logs_bucket: gs://test-bucket-dal
+
+images:
+  - "us-central1-docker.pkg.dev/serverless-430022/dalvacationhome/frontend-image:latest"

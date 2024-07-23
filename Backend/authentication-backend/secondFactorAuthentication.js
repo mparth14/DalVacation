@@ -6,7 +6,6 @@ const client = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 const snsClient = new SNSClient({});
 
-
 // Caesar Cipher encryption function
 const caesarCipherEncrypt = (text, shift) => {
   return text.split('').map(char => {
@@ -31,18 +30,19 @@ exports.handler = async (event) => {
     }
   };
 
-  const action = event.action;
+  const eventData = JSON.parse(event.body);
+  const action = eventData.action;
 
   if (action === "add") {
-    console.log(event.body);
-    const { email, favoriteColor, cityBorn, favoriteSports, secretKey } = event.body;
-    
+    console.log(eventData.body);
+    const { email, favoriteColor, cityBorn, favoriteSports, secretKey } = eventData.body;
+
     // Validate input
     if (!email || !favoriteColor || !cityBorn || !favoriteSports || !secretKey) {
       return {
         ...response,
         statusCode: 400,
-        body: { message: 'Email, favorite color, city born, favorite sports, and secret key are required' },
+        body: JSON.stringify({ message: 'Email, favorite color, city born, favorite sports, and secret key are required' }),
       };
     }
 
@@ -80,26 +80,25 @@ exports.handler = async (event) => {
       ExpressionAttributeValues: expressionAttributeValues,
       ReturnValues: "UPDATED_NEW"
     };
-    
-      // Fetch encrypted secret key and encryption shift from DynamoDB
+
+    // Fetch encrypted secret key and encryption shift from DynamoDB
     const getParams = {
       TableName: 'User',
       Key: { email },
     };
 
-
     try {
       const result = await ddbDocClient.send(new UpdateCommand(params));
       const data = await ddbDocClient.send(new GetCommand(getParams));
       if (!data.Item) {
-      return {
-        ...response,
-        statusCode: 404,
-        body: JSON.stringify({ message: 'User not found' }),
-      };
-    }
+        return {
+          ...response,
+          statusCode: 404,
+          body: JSON.stringify({ message: 'User not found' }),
+        };
+      }
 
-    const { topicArn, firstName} = data.Item;
+      const { topicArn, firstName} = data.Item;
 
       // Send registration success email via SNS
       const publishParams = {
@@ -107,44 +106,42 @@ exports.handler = async (event) => {
         Message: `Welcome to Dal-Vacation-Home, ${firstName}. To get started, log in with your credentials and start exploring our services.`,
         Subject: 'User Registration',
       };
-    
-  
- 
-    try {
-      await snsClient.send(new PublishCommand(publishParams));
-    } catch (snsError) {
-      console.error('Error sending SNS message:', snsError);
-      // Handle the error appropriately, such as returning an error response
-          // console.error('Error sending registration success email', snsError);
-      // return {
-      //   ...response,
-      //   statusCode: 500,
-      //   body: { message: 'Error sending registration success email' }
-      // };
-    }
-      
+
+      try {
+        await snsClient.send(new PublishCommand(publishParams));
+      } catch (snsError) {
+        console.error('Error sending SNS message:', snsError);
+        // Handle the error appropriately, such as returning an error response
+        // console.error('Error sending registration success email', snsError);
+        // return {
+        //   ...response,
+        //   statusCode: 500,
+        //   body: { message: 'Error sending registration success email' }
+        // };
+      }
+
       return {
         ...response,
         statusCode: 200,
-        body: { message: 'Security questions and secret key added successfully', updatedAttributes: result.Attributes }
+        body: JSON.stringify({ message: 'Security questions and secret key added successfully', updatedAttributes: result.Attributes })
       };
     } catch (error) {
       console.error('Error adding security questions:', error);
       return {
         ...response,
         statusCode: 500,
-        body: { message: `Error adding security questions: ${error.message}` }
+        body: JSON.stringify({ message: `Error adding security questions: ${error.message}` })
       };
     }
   } else if (action === "fetch") {
-    const { email, columns } = event.body;
-    
+    const { email, columns } = eventData.body;
+
     // Validate input
     if (!email || !columns || !Array.isArray(columns) || columns.length === 0) {
       return {
         ...response,
         statusCode: 400,
-        body: { message: 'Email and non-empty array of columns are required' },
+        body: JSON.stringify({ message: 'Email and non-empty array of columns are required' }),
       };
     }
 
@@ -159,7 +156,7 @@ exports.handler = async (event) => {
         return {
           ...response,
           statusCode: 404,
-          body: { message: 'User not found' }
+          body: JSON.stringify({ message: 'User not found' })
         };
       }
 
@@ -173,21 +170,21 @@ exports.handler = async (event) => {
       return {
         ...response,
         statusCode: 200,
-        body: result
+        body: JSON.stringify(result)
       };
     } catch (error) {
       console.error('Error fetching columns:', error);
       return {
         ...response,
         statusCode: 500,
-        body: { message: `Error fetching columns: ${error.message}` }
+        body: JSON.stringify({ message: `Error fetching columns: ${error.message}` })
       };
     }
   } else {
     return {
       ...response,
       statusCode: 400,
-      body: { message: 'Invalid action' }
+      body: JSON.stringify({ message: 'Invalid action' })
     };
   }
 };

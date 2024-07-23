@@ -4,14 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c0797da3-b5a9-42e4-b0d4-280f9805f77a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/App.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/src/components/Navbar/Navbar.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/components/Navbar/Navbar.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/src/contexts/AuthContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/contexts/AuthContext.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/src/pages/Dashboard/Dashboard.css" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/pages/Dashboard/Dashboard.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Frontend/src/pages/Login/Login.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/pages/Login/Login.js" afterDir="false" />
+    <list default="true" id="c0797da3-b5a9-42e4-b0d4-280f9805f77a" name="Changes" comment="- ServiceRequestCard changes.">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/authentication-backend/Cloud_formation_authentication.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/authentication-backend/Cloud_formation_authentication.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/authentication-backend/emailVerification.js" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/authentication-backend/emailVerification.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/authentication-backend/secondFactorAuthentication.js" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/authentication-backend/secondFactorAuthentication.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/authentication-backend/signUp.js" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/authentication-backend/signUp.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Frontend/src/pages/Signup/Signup.js" beforeDir="false" afterPath="$PROJECT_DIR$/Frontend/src/pages/Signup/Signup.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -22,22 +20,27 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 6
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
   <component name="ProjectId" id="2jTcM2UdYYsjcSHbNf0j6xUHXTw" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "Unnati",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/unnat/OneDrive/Desktop/MACS/SEM 3/SERVERLESS/DevelopmentBranchs/Git pull on 19th july/s24_5410_group21_dalvacationhome"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Unnati&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/unnat/OneDrive/Desktop/MACS/SEM 3/SERVERLESS/DevelopmentBranchs/Git pull on 19th july/s24_5410_group21_dalvacationhome/Backend/authentication-backend&quot;
   }
-}]]></component>
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\unnat\OneDrive\Desktop\MACS\SEM 3\SERVERLESS\DevelopmentBranchs\Git pull on 19th july\s24_5410_group21_dalvacationhome\Backend\authentication-backend" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -47,6 +50,23 @@
       <option name="presentableId" value="Default" />
       <updated>1721414456026</updated>
     </task>
+    <task id="LOCAL-00001" summary="- Pub-sub and Message passing module. Authentication Lambda cloudformation changes.">
+      <option name="closed" value="true" />
+      <created>1721422734796</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1721422734796</updated>
+    </task>
+    <task id="LOCAL-00002" summary="- ServiceRequestCard changes.">
+      <option name="closed" value="true" />
+      <created>1721423167944</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1721423167944</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -58,5 +78,21 @@
         <option value="Default.Subject" />
       </list>
     </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="- Pub-sub and Message passing module. Authentication Lambda cloudformation changes." />
+    <MESSAGE value="- ServiceRequestCard changes." />
+    <option name="LAST_COMMIT_MESSAGE" value="- ServiceRequestCard changes." />
   </component>
 </project>
