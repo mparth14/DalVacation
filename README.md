@@ -3,7 +3,7 @@
 
 ### Deployed Site
 
-[DalVacationHome Site](https://dal-vacation-hom-yt4akn7xpq-uc.a.run.app/)
+[DalVacationHome Site](https://dal-vacation-home-yt4akn7xpq-uc.a.run.app/)
 
 ### Development Steps
 
