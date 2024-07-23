@@ -21,7 +21,7 @@ steps:
     args:
       - "run"
       - "deploy"
-      - "testing"
+      - "dal-vacation-home"
       - "--image"
       - "us-central1-docker.pkg.dev/serverless-430022/dalvacationhome/frontend-image:latest"
       - "--platform"
