@@ -1,0 +1,45 @@
+imports:
+  - path: https://www.googleapis.com/discovery/v1/apis/storage/v1/rest
+  - path: templates/cloud_function/cloud_function.py
+    name: cloud_function.py
+  - path: templates/pubsub/pubsub.py
+    name: pubsub.py
+
+resources:
+  - name: test-deployment-bucket-dal
+    type: storage.v1.bucket
+    properties:
+      location: US-CENTRAL1
+      storageClass: STANDARD
+      labels:
+        environment: dev
+
+  - name: test-pubsub
+    type: pubsub.py
+    properties:
+      name: test-topic
+
+  - name: first-cloud-function
+    type: cloud_function.py
+    properties:
+      region: us-central1
+      entryPoint: publishMessage
+      runtime: nodejs20
+      sourceArchiveUrl: gs://test-resources-dal/function-source1.zip
+      availableMemoryMb: 256
+      parent: projects/serverless-430022/locations/us-central1
+
+  - name: second-cloud-function
+    type: cloud_function.py
+    properties:
+      region: us-central1
+      entryPoint: helloPubSub
+      runtime: nodejs20
+      sourceArchiveUrl: gs://test-resources-dal/function-source2.zip
+      availableMemoryMb: 256
+      parent: projects/serverless-430022/locations/us-central1
+      eventTrigger:
+        eventType: providers/cloud.pubsub/eventTypes/topic.publish
+        trigger: projects/serverless-430022/topics/$(ref.test-pubsub.name)
+        # eventType: google.pubsub.topic.publish
+        # resource: $(ref.test-pubsub.name)
