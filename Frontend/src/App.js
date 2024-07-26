@@ -41,8 +41,8 @@ const App = () => {
 const Main = () => {
   const location = useLocation();
 
-  const hideNavbarRoutes = ['/login', '/signup', '/concern-request-list'];
-  const showNavbar = !hideNavbarRoutes.includes(location.pathname) && !location.pathname.startsWith('/chat/');
+  const hideNavbarRoutes = ['/login', '/signup'];
+  const showNavbar = !hideNavbarRoutes.includes(location.pathname);
 
   const ProtectedRouteForAgents = ({ element: Component, ...rest }) => {
     const role = localStorage.getItem('role');

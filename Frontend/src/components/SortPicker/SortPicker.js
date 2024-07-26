@@ -25,7 +25,7 @@ const SortPicker = ({ selectedOption, onSortChange }) => {
 
     return (
         <div className="sort-container">
-            <Button className="sort-selected-option" onClick={handleClick} style={{ color: "#fff" }}>
+            <Button className="sort-selected-option" onClick={handleClick} style={{ color: 'black' }}>
                 {selectedOption}
                 <ExpandMoreOutlinedIcon />
             </Button>
@@ -51,7 +51,7 @@ const SortPicker = ({ selectedOption, onSortChange }) => {
                         onChange={handleSortChange}
 
                     >
-                        {['Recent Date first', 'Oldest Date first', 'Lowest price first', 'Highest price first'].map(option => (
+                        {['Lowest price first', 'Highest price first'].map(option => (
                             <FormControlLabel
                                 key={option}
                                 value={option}

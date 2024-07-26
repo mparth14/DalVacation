@@ -171,7 +171,7 @@ const Login = () => {
                         sessionStorage.setItem('userType', response.data.user.userType);
                         sessionStorage.setItem('user_id', response.data.user.user_id);
                         login(response.data.user);
-                        
+
                         await axios.post('https://u4praapk75b7qqz4dssxytsxke0sxvmb.lambda-url.us-east-1.on.aws/', {
                             email: formData.email
                         });
@@ -303,8 +303,9 @@ const Login = () => {
                         navigate('/manage-rooms');
                     } else if (localStorage.getItem('role') == "registered-users") {
                         navigate('/dashboard');
-                    }}
-                    else {
+                    }
+                }
+                else {
                     // Handle third factor authentication failure
                     alert('Failed to verify third factor authentication.');
                 }
@@ -341,6 +342,9 @@ const Login = () => {
 
 
     const handleBack = () => {
+        if (activeStep === 0) {
+            navigate("/");
+        }
         if (!apiSuccess) {
             setActiveStep((prevActiveStep) => prevActiveStep - 1);
         }
@@ -481,7 +485,7 @@ const Login = () => {
                 <Box mt={2}>
                     {renderStepContent(activeStep)}
                     <Box mt={2} display="flex" justifyContent="space-between">
-                        <StyledButton disabled={activeStep === 0} onClick={handleBack} variant="contained">
+                        <StyledButton onClick={handleBack} variant="contained">
                             Back
                         </StyledButton>
                         {activeStep === 0 && (

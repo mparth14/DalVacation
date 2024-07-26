@@ -14,7 +14,7 @@ const Dashboard = () => {
 
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [sortType, setSortType] = useState('Recent Date first');
+    const [sortType, setSortType] = useState('Recommended');
     const [filteredRooms, setFilteredRooms] = useState([]);
 
     useEffect(() => {
@@ -36,13 +36,9 @@ const Dashboard = () => {
 
     const handleSortChange = (sortOption) => {
         setSortType(sortOption);
-        let sortedRooms = [...filteredRooms]; // Create a copy of filteredRooms
+        let sortedRooms = [...filteredRooms];
 
-        if (sortOption === 'Recent Date first') {
-            sortedRooms.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-        } else if (sortOption === 'Oldest Date first') {
-            sortedRooms.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-        } else if (sortOption === 'Lowest price first') {
+        if (sortOption === 'Lowest price first') {
             sortedRooms.sort((a, b) => a.price - b.price);
         } else if (sortOption === 'Highest price first') {
             sortedRooms.sort((a, b) => b.price - a.price);
