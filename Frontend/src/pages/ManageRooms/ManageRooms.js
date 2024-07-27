@@ -60,7 +60,7 @@ const ManageRooms = () => {
         setModalMode('edit');
         setOpenModal(true);
     };
-    
+
     const handleDeleteRoom = async (roomId) => {
         const confirmDelete = window.confirm('Are you sure you want to delete this room?');
         if (confirmDelete) {
@@ -78,7 +78,6 @@ const ManageRooms = () => {
             >
                 Add Room
             </Button>
-            <h1>Manage Rooms</h1>
             <div className="room-list">
                 {rooms.map(room => (
                     <div key={room.room_id} className="room-card-container">

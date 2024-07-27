@@ -30,7 +30,7 @@ const RoomDetails = () => {
     const handleBooking = async (event) => {
         event.preventDefault();
 
-        if (!user) {
+        if (!user || user?.userType === 'property-agents') {
             navigate('/login');
             return;
         }
@@ -87,8 +87,8 @@ const RoomDetails = () => {
 
     const handleFeedbackClick = (event) => {
         event.preventDefault();
-
-        if (!user) {
+        console.log(user);
+        if (!user || user.userType === 'property-agents') {
             navigate('/login');
             return;
         }
@@ -168,12 +168,12 @@ const RoomDetails = () => {
                         value={guests}
                         onChange={(e) => setGuests(e.target.value)}
                     />
-                    <button onClick={(event) => handleBooking(event)}>BOOK</button>
+                    <button disabled={user?.userType === 'property-agents'} onClick={(event) => handleBooking(event)}>BOOK</button>
                 </div>
             </div>
             {/* Feedback Display Section */}
             <FeedbackDisplay roomId={room.room_id} />
-            <Button variant="contained" color="primary" onClick={handleFeedbackClick} style={{ marginTop: '20px' }}>
+            <Button variant="contained" color="primary" disabled={user?.userType === 'property-agents'} onClick={handleFeedbackClick} style={{ marginTop: '20px' }}>
                 Leave Feedback
             </Button>
 

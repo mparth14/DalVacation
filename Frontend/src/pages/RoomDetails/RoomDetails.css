@@ -39,6 +39,12 @@
     align-items: center;
 }
 
+.room-book-box button:disabled {
+    background-color: rgb(217, 214, 214);
+    color: white; 
+    cursor: not-allowed;
+}
+
 .room-book-dates {
     flex-direction: row;
     display: flex;

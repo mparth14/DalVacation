@@ -10,6 +10,7 @@ import BookIcon from '@mui/icons-material/Book'; // Import a suitable icon for "
 
 function ResponsiveAppBar() {
   const { user, logout } = useAuth();
+  const dashboardUrl = user?.userType === 'property-agents' ? '/manage-rooms' : '/dashboard';
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ function ResponsiveAppBar() {
   };
 
   const handleDashboardClick = () => {
-    navigate('/dashboard');
+    navigate(dashboardUrl);
   };
 
   const handleStatisticsClick = () => {
@@ -86,7 +87,7 @@ function ResponsiveAppBar() {
           variant="h6"
           noWrap
           component={Link}
-          to="/"
+          to={dashboardUrl}
           sx={{
             flexGrow: 1,
             display: { xs: 'none', md: 'block' },

@@ -33,7 +33,7 @@ const StyledTextField = styled(TextField)({
     '& .MuiInputLabel-root.Mui-focused': {
         color: '#ff6f61', // Label color when focused
     },
-  marginBottom: '20px',
+    marginBottom: '20px',
 });
 
 const CustomStepper = styled(Stepper)({
@@ -215,10 +215,10 @@ const Signup = () => {
                 try {
                     const encodeBase64 = btoa(formData.password);
 
-                    console.log("password"+encodeBase64);
-                    console.log("email"+formData.email);
-                    console.log("firstName"+formData.firstName);
-                    console.log("lastName"+formData.lastName);
+                    console.log("password" + encodeBase64);
+                    console.log("email" + formData.email);
+                    console.log("firstName" + formData.firstName);
+                    console.log("lastName" + formData.lastName);
                     const response = await axios.post('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/sign-up', {
                         email: formData.email,
                         password: encodeBase64,
@@ -226,102 +226,105 @@ const Signup = () => {
                         lastName: formData.lastName,
                         groupToAdd: userType === 0 ? 'registered-users' : 'property-agents',
                     });
-                    console.log('Sign up successful: Unnati', response.statusCode+"   "+response.data.message);
+                    console.log('Sign up successful: Unnati', response.statusCode + "   " + response.data.message);
                     let errorMessage = 'An error occurred while signing up the user.';
                     if (response.status === 200) {
-                      setActiveStep((prevActiveStep) => prevActiveStep + 1);
-                      setApiSuccess(true);
-                      setErrors({ apiError: '' });
-                    }else if(response.statusCode===400){
-                       if(response.data.message=== 'An account with this email already exists.'){
-                              errorMessage = 'An account with this email already exists. Please use a different email address.';
+                        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+                        setApiSuccess(true);
+                        setErrors({ apiError: '' });
+                    } else if (response.statusCode === 400) {
+                        if (response.data.message === 'An account with this email already exists.') {
+                            errorMessage = 'An account with this email already exists. Please use a different email address.';
 
-                       }else {
-                          errorMessage = 'Invalid input provided. Please check your input fields.';
-                       }
-                       setErrors({ apiError: errorMessage });
-                       console.log(errorMessage+"    unnati")
+                        } else {
+                            errorMessage = 'Invalid input provided. Please check your input fields.';
+                        }
+                        setErrors({ apiError: errorMessage });
+                        console.log(errorMessage + "    unnati")
                     }
-                    else if (response.statusCode===500){
-                      errorMessage= response.data.message || 'Internal Server error';
-                      setErrors({ apiError: errorMessage });
-                    }else {
+                    else if (response.statusCode === 500) {
+                        errorMessage = response.data.message || 'Internal Server error';
+                        setErrors({ apiError: errorMessage });
+                    } else {
                         let errorMessage = 'Signup failed. Please try again.';
                         if (response.data.message) {
                             errorMessage = response.data.message;
                         }
                         setErrors({ apiError: errorMessage });
                     }
-                  } catch (error) {
+                } catch (error) {
                     console.error('Error during sign up:', error.response ? error.response.data : error.message);
                     let errorMessage = 'An error occurred while signing up the user.';
                     setErrors({ apiError: errorMessage });
-                  }
+                }
             } else if (activeStep === 1) {
                 try {
                     const response = await axios.post('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/email-verification', {
-                      // Provide necessary data for verification code API call
-                      action: 'verifyVerificationCode',
-                      email: formData.email,
-                      verificationCode: formData.verificationCode.toString().replace(/,/g, ''),
+                        // Provide necessary data for verification code API call
+                        action: 'verifyVerificationCode',
+                        email: formData.email,
+                        verificationCode: formData.verificationCode.toString().replace(/,/g, ''),
                     });
 
-                    console.log("Verification::"+response.data);
-                                        console.log("Verification::"+response.data.statusCode);
+                    console.log("Verification::" + response.data);
+                    console.log("Verification::" + response.data.statusCode);
 
-                    console.log("Verification::"+formData.verificationCode.toString().replace(/,/g, ''));
+                    console.log("Verification::" + formData.verificationCode.toString().replace(/,/g, ''));
                     // Handle response from verification code API
                     if (response.status === 200) {
-                      setActiveStep((prevActiveStep) => prevActiveStep + 1);
-                      setApiSuccess(true);
-                      setErrors({ apiError: '' });
-                    }else {
-                      let errorMessage = response.data.message || 'Verification failed.';
-                      setErrors({ apiError: errorMessage });
+                        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+                        setApiSuccess(true);
+                        setErrors({ apiError: '' });
+                    } else {
+                        let errorMessage = response.data.message || 'Verification failed.';
+                        setErrors({ apiError: errorMessage });
                     }
-                  } catch (error) {
+                } catch (error) {
                     console.error('Error during verification:', error);
                     let errorMessage = 'An error occurred while verifying the code.';
                     setErrors({ apiError: errorMessage });
-                  }
+                }
             } else if (activeStep === 2) {
                 setActiveStep((prevActiveStep) => prevActiveStep + 1);
             } else if (activeStep === 3) {
                 try {
                     const response = await axios.post('https://pp7futon99.execute-api.us-east-1.amazonaws.com/dev/second-factor-auth', {
-                      action: 'add',
-                      body: {
-                        email: formData.email,
-                        favoriteColor: formData.favColor,
-                        favoriteSports: formData.favSports,
-                        cityBorn: formData.cityBorn,
-                        secretKey: formData.securityKey,
-                      },
+                        action: 'add',
+                        body: {
+                            email: formData.email,
+                            favoriteColor: formData.favColor,
+                            favoriteSports: formData.favSports,
+                            cityBorn: formData.cityBorn,
+                            secretKey: formData.securityKey,
+                        },
                     });
 
                     console.log(response.data);
                     if (response.status === 200) {
-                      setActiveStep((prevActiveStep) => prevActiveStep + 1);
-                      setApiSuccess(true);
-                      setErrors({ apiError: '' });
+                        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+                        setApiSuccess(true);
+                        setErrors({ apiError: '' });
                     } else {
-                      let errorMessage = response.data.message || 'Failed to store security details.';
-                      setErrors({ apiError: errorMessage });
+                        let errorMessage = response.data.message || 'Failed to store security details.';
+                        setErrors({ apiError: errorMessage });
                     }
-                  } catch (error) {
+                } catch (error) {
                     console.error('Error during storing security details:', error);
                     let errorMessage = 'An error occurred while storing security details.';
                     setErrors({ apiError: errorMessage });
-                  }
+                }
             }
         }
     };
 
     const handleBack = () => {
-        if (!apiSuccess) {
-          setActiveStep((prevActiveStep) => prevActiveStep - 1);
+        if (activeStep === 0) {
+            navigate("/");
         }
-      };
+        if (!apiSuccess) {
+            setActiveStep((prevActiveStep) => prevActiveStep - 1);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -399,8 +402,8 @@ const Signup = () => {
                     <Box >
 
                         <Tabs value={userType} onChange={handleUserTypeChange}>
-                            <Tab label="Normal User"  />
-                            <Tab label="Agent"  />
+                            <Tab label="Normal User" />
+                            <Tab label="Agent" />
                         </Tabs>
                         <StyledTextField
                             fullWidth
@@ -550,9 +553,9 @@ const Signup = () => {
     return (
         <BackgroundBox>
             <CardBox>
-            <Typography variant="body1" gutterBottom sx={{ textAlign: 'center', paddingBottom:'20px', color:'black'}}>
-                Please fill out the form below to create your account.
-            </Typography>
+                <Typography variant="body1" gutterBottom sx={{ textAlign: 'center', paddingBottom: '20px', color: 'black' }}>
+                    Please fill out the form below to create your account.
+                </Typography>
                 <CustomStepper activeStep={activeStep} alternativeLabel>
                     {steps.map((label) => (
                         <CustomStep key={label}>
@@ -563,21 +566,21 @@ const Signup = () => {
                 <Box>
                     {activeStep === steps.length ? (
                         <Box
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '20px 0',
-                        }}
-                    >
-                        <Typography variant="h5" gutterBottom style={{ color: 'black' }}>
-                            Thank you for registering.
-                        </Typography>
-                        <Typography variant="subtitle1" style={{ color: 'black' }}>
-                            You're now ready to use our services.
-                        </Typography>
-                        {/* <Button
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '20px 0',
+                            }}
+                        >
+                            <Typography variant="h5" gutterBottom style={{ color: 'black' }}>
+                                Thank you for registering.
+                            </Typography>
+                            <Typography variant="subtitle1" style={{ color: 'black' }}>
+                                You're now ready to use our services.
+                            </Typography>
+                            {/* <Button
                             variant="contained"
                             color="primary"
                             onClick={redirectToSignIn}
@@ -585,17 +588,17 @@ const Signup = () => {
                         >
                            Let's Sign In
                         </Button> */}
-                        <StyledButton onClick={redirectToSignIn} style={{ marginTop: '20px' }}        color="primary" variant="contained">
-                            Let's Login
-                        </StyledButton>
+                            <StyledButton onClick={redirectToSignIn} style={{ marginTop: '20px' }} color="primary" variant="contained">
+                                Let's Login
+                            </StyledButton>
 
 
-                    </Box>
+                        </Box>
                     ) : (
                         <Box>
                             {renderStepContent(activeStep)}
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-                                <Button disabled={activeStep === 0} onClick={handleBack}>
+                                <Button onClick={handleBack}>
                                     Back
                                 </Button>
                                 <StyledButton variant="contained" onClick={handleNext}>
