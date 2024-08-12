@@ -4,9 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const admin = require('firebase-admin');
 
 AWS.config.update({
-    accessKeyId: 'AKIA2IROBIIOYIZMURUT',
-    secretAccessKey: 'rvJLhdBPnXpBQggcyXqfIUXGZEskZTaL/6shk8+S',
-    region: 'us-east-1' // Replace with your AWS region
+\
 });
 
 // Initialize Firebase Admin SDK
